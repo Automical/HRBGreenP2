@@ -473,12 +473,16 @@ def main():
   point2 = rotation * np.matrix([[20.32],[0],[0]]) + translation
   point3 = rotation * np.matrix([[20.32],[27.94],[0]]) + translation
   point4 = rotation * np.matrix([[0],[27.94],[0]]) + translation
+  print(point1)
+  print(point2)
+  print(point3)
+  print(point4)
 
   basis1 = point2-point1
   basis1 = basis1/np.sqrt(np.multiply(basis1,basis1)).sum()
   #print('basis1')
   #print(basis1)
-  basis2 = point3-point1
+  basis2 = point4-point1
   basis2 = basis2/np.sqrt(np.multiply(basis2,basis2)).sum()
 
   convertpage = ConvertPage(point1, basis1, basis2)
