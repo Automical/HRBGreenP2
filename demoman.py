@@ -405,10 +405,10 @@ def goToPoint(a,ang,end):
     d = asarray([tx,ty,tz])
 
     ang = ang + dot(pinv(Jt)[:,:len(d)],d)
-    #ax.clear()
+    ax.clear()
     #ax.plot_wireframe(x,y,z)
-    #a.plot3D(ang)
-    #sleep(.25)
+    a.plot3D(ang)
+    sleep(.25)
     if (dist(tool,end)<1):
       go = 0;
     #print(tool)
