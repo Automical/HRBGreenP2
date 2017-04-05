@@ -6,7 +6,7 @@ from time import sleep
 
 #global constants
 PAPER = np.matrix([[ 3./5, 4./5, 0., 50.],[-4./5, 3./5, 0., 0.],[0.,0.,1.,0.],[0.,0.,0.,1.]])
-PEN_STROKES = [ [(10,0),(10,30)], [[10,15],[20,15]],[[20,0],[20,30]] ]
+PEN_STROKES = [ [(100,0),(100,200)], [[100,100],[200,100]],[[200,00],[200,200]] ]
 
 def seToSE( x ):
   """
@@ -439,9 +439,9 @@ def iteration(a, ang, tip_points):
   # Draw robot arm
   a.plot3D(ang)
 
-  print "Angles: ",ang
-  print("Tool tip position:")
-  print(a.getTool(ang)[0:3])
+  #print "Angles: ",ang
+  #print("Tool tip position:")
+  #print(a.getTool(ang)[0:3])
   tip_points[0].append(a.getTool(ang)[0])
   tip_points[1].append(a.getTool(ang)[1])
   tip_points[2].append(a.getTool(ang)[2])
@@ -451,6 +451,7 @@ def iteration(a, ang, tip_points):
 
   # Draw all buffered plots
   plt.draw()
+  pause(.01)
 
 def main():
   global fig, ax,x,y,z
@@ -498,6 +499,9 @@ def main():
   tip_points.append([a.getTool(ang)[0]])
   tip_points.append([a.getTool(ang)[1]])
   tip_points.append([a.getTool(ang)[2]])
+
+  strokes = PEN_STROKES
+
   while 1:
     # Run main iterative loop for drawing
     iteration(a, ang, tip_points)
@@ -514,43 +518,16 @@ def main():
       if (d == "reset"):
         ang = [0,pi/4,pi/4]
       if (d == "clear" or "reset"):
-        del tip_points_x[:, :]
+        del tip_points[:][:]
       if (d == "draw"):
         for pts in strokes:
           print(pts)
-          #print(pts[0])
-          #print(convertpage(pts[0][0], pts[0][1]))
-          a,ang = goToPoint(a,ang,convertpage(pts[0][0]/10.0, pts[0][1]/10.0))
-          ax.clear()
-          #print("cleared plot")
-          ax.plot_wireframe(x,y,z,color='k')
-          #print("drawing paper")
-          a.plot3D(ang)
-          #print('plotting 3d')
-          tip_points_x.append(a.getTool(ang)[0])
-          tip_points_y.append(a.getTool(ang)[1])
-          tip_points_z.append(a.getTool(ang)[2])
-          #print('appended points')
-          ax.plot_wireframe(tip_points_x, tip_points_y, tip_points_z,color='r')
-          #print('plotting traces')
-          plt.draw()
-          #print("drawing fig")
+          a,ang = goToPoint(a,ang,convertpage(pts[0][0]/10.0, pts[0][1]/10.0),tip_points)
 
           sleep(1)
-          #print('past sleep')
-          #print(convertpage(pts[1][0], pts[1][1]))
-          a,ang = goToPoint(a,ang,convertpage(pts[1][0]/10.0, pts[1][1]/10.0))
-          #print('went to point')
-          ax.clear()
-          ax.plot_wireframe(x,y,z,color='k')
-          a.plot3D(ang)
-          #print('plotting3d')
-          tip_points_x.append(a.getTool(ang)[0])
-          tip_points_y.append(a.getTool(ang)[1])
-          tip_points_z.append(a.getTool(ang)[2])
-          ax.plot_wireframe(tip_points_x, tip_points_y, tip_points_z,color='r')
-          plt.draw()
-          #print('made it past second')
+          
+          a,ang = goToPoint(a,ang,convertpage(pts[1][0]/10.0, pts[1][1]/10.0),tip_points)
+
           sleep(1)
           
   
