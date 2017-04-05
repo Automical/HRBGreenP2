@@ -136,15 +136,16 @@ class Arm( object ):
   def __init__(self):
     # link lengths
     self.ll = asarray([10,10,10])
-    self.geom = asarray([[0,0,0,0],[0,0,10,10],[0,10,10,10]])
+    '''
+    self.geom = asarray([[0,0,0,0],[0,0,0,0],[0,10,20,30],[1,1,1,1]])
     print(self.geom)
     w = asarray([[0,0,1],[0,1,0],[0,1,0]])
     w1 = asarray([0,0,1])
     w2 = asarray([0,1,0])
     w3 = asarray([0,1,0])
     v1 = -cross(w1,[0,0,10])
-    v2 = -cross(w2,[0,0,10])
-    v3 = -cross(w3,[0,0,10])
+    v2 = -cross(w2,[0,0,20])
+    v3 = -cross(w3,[0,0,30])
     self.tw = []
     tw1 = concatenate([v1,w1],0)
     tw2 = concatenate([v2,w2],0)
@@ -157,7 +158,8 @@ class Arm( object ):
     
     self.tw = asarray(self.tw)
     print(self.tw)
-    self.tool = asarray([0,10,10,1]).T
+    self.tool = asarray([0,0,20,1]).T
+    '''
     # arm geometry to draw
     d=0.2
     '''
@@ -178,7 +180,7 @@ class Arm( object ):
     ], axis=0)
     '''
     
-    '''
+    
     self.geom = [( asarray([[0,0,0,1]]) ).T ]
     #
     # Build twist matrices 
@@ -204,7 +206,7 @@ class Arm( object ):
     # Build an array of collected twists
     self.tw = asarray(tw)
     self.tool = asarray([LL,0,0,1]).T
-    '''
+    
     
     # overwrite method with jacobian function
     self.getToolJac = jacobian_cdas( 
