@@ -1,4 +1,4 @@
-
+import numpy as np
 from scipy.linalg import expm as expM
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -418,6 +418,16 @@ def main():
   """
   fig = plt.figure()
   ax = fig.gca(projection='3d')
+
+  paper = np.matrix([[ 3./5, 4./5, 0., 50.],[-4./5, 3./5, 0., 0.],[0.,0.,1.,0.],[0.,0.,0.,1.]])  #4x4 rigid body transformation for paper position
+  rotation = paper[0:3,0:3]
+  translation = paper[0:3,3:4]
+  print(translation)
+  point1 = rotation * np.matrix([[0],[0],[0]]) + translation
+  point2 = rotation * np.matrix([[20.32],[0],[0]]) + translation
+  point3 = rotation * np.matrix([[20.32],[27.94],[0]]) + translation
+  point4 = rotation * np.matrix([[0],[27.94],[0]]) + translation
+
   
   plt.show()
   a = Arm()
