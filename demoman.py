@@ -407,22 +407,45 @@ def main():
   a = Arm()
   #f = gcf()
   ang = [0,pi/4,pi/4]
+  tip_points_x = [a.getTool(ang)[0]]
+  tip_points_y = [a.getTool(ang)[1]]
+  tip_points_z = [a.getTool(ang)[2]]
   while 1:
-    #a.fig.set(visible=0)
-    #clf()
+    # Clear the screen
     ax.clear()
+
+    # Draw paper
     ax.plot_wireframe(x,y,z)
+
+    # Draw robot arm
     a.plot3D(ang)
-    
-    plt.draw()
-    #a.fig.set(visible=1)
-    #draw()
+
     print "Angles: ",ang
+    print("Tool tip position:")
+    print(a.getTool(ang)[0:3])
+    tip_points_x.append(a.getTool(ang)[0])
+    tip_points_y.append(a.getTool(ang)[1])
+    tip_points_z.append(a.getTool(ang)[2])
+
+    # Draw previous tool positions
+    ax.plot_wireframe(tip_points_x, tip_points_y, tip_points_z)
+
+    # Draw all buffered plots
+    plt.draw()
+
+    # Get user input
     d = input("direction as list / angles as tuple?>")
     if type(d) == list:
       Jt = a.getToolJac(ang)
       ang = ang + dot(pinv(Jt)[:,:len(d)],d)
-    else:
+    elif type(d) == tuple:
       ang = d
+    else:
+      if (d == "reset"):
+        ang = [0,pi/4,pi/4]
+      if (d == "clear" or "reset"):
+        del tip_points_x[:]
+        del tip_points_y[:]
+        del tip_points_z[:]
   
 main()
