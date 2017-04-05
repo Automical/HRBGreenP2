@@ -135,16 +135,16 @@ class Arm( object ):
   """
   def __init__(self):
     # link lengths
-    self.ll = asarray([3,3,3])
-    self.geom = asarray([[0,0,0,0],[0,0,3,6],[0,3,3,3]])
+    self.ll = asarray([10,10,10])
+    self.geom = asarray([[0,0,0,0],[0,0,10,10],[0,10,10,10]])
     print(self.geom)
     w = asarray([[0,0,1],[0,1,0],[0,1,0]])
     w1 = asarray([0,0,1])
     w2 = asarray([0,1,0])
     w3 = asarray([0,1,0])
-    v1 = -cross(w1,[0,0,3])
-    v2 = -cross(w2,[0,0,6])
-    v3 = -cross(w3,[0,0,9])
+    v1 = -cross(w1,[0,0,10])
+    v2 = -cross(w2,[0,0,10])
+    v3 = -cross(w3,[0,0,10])
     self.tw = []
     tw1 = concatenate([v1,w1],0)
     tw2 = concatenate([v2,w2],0)
@@ -157,7 +157,7 @@ class Arm( object ):
     
     self.tw = asarray(self.tw)
     print(self.tw)
-    self.tool = asarray([0,6,3,1]).T
+    self.tool = asarray([0,10,10,1]).T
     # arm geometry to draw
     d=0.2
     '''
@@ -332,7 +332,7 @@ class Arm( object ):
       print(shape(ng[1]))
       print(shape(ng[2]))
       '''
-      '''
+      
       print('ng test')
       print('ng')
       print(ng)
@@ -342,7 +342,12 @@ class Arm( object ):
       print(ng[1])
       print('ng2')
       print(ng[2])
-      '''
+      print('x')
+      print(x)
+      print('y')
+      print(y)
+      print('z')
+      print(z)
       x.append(float(ng[0]))
       y.append(float(ng[1]))
       z.append(float(ng[2]))
@@ -360,11 +365,11 @@ class Arm( object ):
     ax.plot( x, y, z,  zdir='z' )
     ax.plot( x, y, z, 'hk', zdir='z' )
     #ax.plot(tp[0],tp[1],tp[2],'hr',zdir='z')
-    ax.set_xlim(-20,20)
+    ax.set_xlim(-30,30)
     ax.set_xlabel('x')
-    ax.set_ylim(-20,20)
+    ax.set_ylim(-30,30)
     ax.set_ylabel('y')
-    ax.set_zlim(-20,20)
+    ax.set_zlim(-30,30)
     ax.set_zlabel('z')
     #tp = dot(a, self.tool)
     #tp = self.getTool(ang)
