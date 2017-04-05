@@ -2,7 +2,7 @@ import numpy as np
 from scipy.linalg import expm as expM
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-
+from time import sleep
 def seToSE( x ):
   """
   Convert a twist (a rigid velocity, element of se(3)) to a rigid
@@ -295,7 +295,7 @@ class Arm( object ):
       print(shape(ng[1]))
       print(shape(ng[2]))
       '''
-      
+      '''
       print('ng test')
       print('ng')
       print(ng)
@@ -311,20 +311,21 @@ class Arm( object ):
       print(y)
       print('z')
       print(z)
+      '''
       x.append(float(ng[0]))
       y.append(float(ng[1]))
       z.append(float(ng[2]))
     #self.ax.plot( ng[0,:], ng[1,:], ng[2,:], label='parametric curve' )
-    print(x)
-    print(y)
-    print(z)
+    #print(x)
+    #print(y)
+    #print(z)
     tp = self.getTool(ang)
     x.append(float(tp[0]))
     y.append(float(tp[1]))
     z.append(float(tp[2]))
-    print(x)
-    print(y)
-    print(z)
+    #print(x)
+    #print(y)
+    #print(z)
     ax.plot( x, y, z,  zdir='z' )
     ax.plot( x, y, z, 'hk', zdir='z' )
     #ax.plot(tp[0],tp[1],tp[2],'hr',zdir='z')
@@ -377,8 +378,56 @@ class Arm( object ):
     xlabel('X'); ylabel('Z')
     '''
 
+
+def dist(tool,end):
+  return sqrt((tool[0]-end[0])**2+(tool[1]-end[1])**2+(tool[2]-end[2])**2)
+    
+def goToPoint(a,ang,end):
+  global ax,x,y,z
+  go = 1
+  while (go):
+    tool = a.getTool(ang)
+    Jt = a.getToolJac(ang)
+    if (end[0]-tool[0])>0:
+      tx = .25
+    else:
+      tx=-.25
+
+    if (end[1]-tool[1])>0:
+      ty = .25
+    else:
+      ty=-.25
+    if (end[2]-tool[2])>0:
+      tz = .25
+    else:
+      tz=-.25
+
+    d = asarray([tx,ty,tz])
+
+    ang = ang + dot(pinv(Jt)[:,:len(d)],d)
+    #ax.clear()
+    #ax.plot_wireframe(x,y,z)
+    #a.plot3D(ang)
+    #sleep(.25)
+    if (dist(tool,end)<1):
+      go = 0;
+    #print(tool)
+    
+  return a,ang
+
+class ConvertPage(object):
+  def __init__(self, o, b1, b2):
+    self.origin = o
+    self.basis1 = b1
+    self.basis2 = b2
+        
+  def __call__(self, x, y):
+    return self.origin + self.basis1 * x + self.basis2 * y
+
+
+
 def main():
-  global fig, ax
+  global fig, ax,x,y,z
   """
   Run an example of a robot arm
   
@@ -395,6 +444,17 @@ def main():
   point2 = rotation * np.matrix([[20.32],[0],[0]]) + translation
   point3 = rotation * np.matrix([[20.32],[27.94],[0]]) + translation
   point4 = rotation * np.matrix([[0],[27.94],[0]]) + translation
+
+  basis1 = point2-point1
+  basis1 = basis1/np.sqrt(np.multiply(basis1,basis1)).sum()
+  #print('basis1')
+  #print(basis1)
+  basis2 = point3-point1
+  basis2 = basis2/np.sqrt(np.multiply(basis2,basis2)).sum()
+
+  convertpage = ConvertPage(point1, basis1, basis2)
+
+  convertpage(0,0)
 
   x = asarray([float(point1[0]),float(point2[0]),float(point3[0]),float(point4[0]),float(point1[0])])
   y = asarray([float(point1[1]),float(point2[1]),float(point3[1]),float(point4[1]),float(point1[1])])
@@ -436,8 +496,9 @@ def main():
     # Get user input
     d = input("direction as list / angles as tuple?>")
     if type(d) == list:
-      Jt = a.getToolJac(ang)
-      ang = ang + dot(pinv(Jt)[:,:len(d)],d)
+      a,ang = goToPoint(a,ang,d)
+      #Jt = a.getToolJac(ang)
+      #ang = ang + dot(pinv(Jt)[:,:len(d)],d)
     elif type(d) == tuple:
       ang = d
     else:
