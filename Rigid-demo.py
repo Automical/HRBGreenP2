@@ -425,7 +425,9 @@ def main():
   """
   fig = plt.figure()
   ax = fig.gca(projection='3d')
-
+  ax.set_xlim()
+  ax.set_ylim()
+  ax.set_zlim()
   paper = np.matrix([[ 3./5, 4./5, 0., 50.],[-4./5, 3./5, 0., 0.],[0.,0.,1.,0.],[0.,0.,0.,1.]])  #4x4 rigid body transformation for paper position
   rotation = paper[0:3,0:3]
   translation = paper[0:3,3:4]
