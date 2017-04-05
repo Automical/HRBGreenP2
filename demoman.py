@@ -387,7 +387,7 @@ class Arm( object ):
 def dist(tool,end):
   return sqrt((tool[0]-end[0])**2+(tool[1]-end[1])**2+(tool[2]-end[2])**2)
     
-def goToPoint(a,ang,end,tip_points):
+def goToPoint(a,ang,end,tip_points, store_points):
   global ax,x,y,z
   go = 1
   while (go):
@@ -410,7 +410,7 @@ def goToPoint(a,ang,end,tip_points):
     d = asarray([tx,ty,tz])
 
     ang = ang + dot(pinv(Jt)[:,:len(d)],d)
-    iteration(a, ang, tip_points)
+    iteration(a, ang, tip_points, store_points)
     #sleep(.1)
     if (dist(tool,end)<1):
       go = 0;
@@ -427,7 +427,7 @@ class ConvertPage(object):
   def __call__(self, x, y):
     return self.origin + self.basis1 * x + self.basis2 * y
 
-def iteration(a, ang, tip_points):
+def iteration(a, ang, tip_points, store_points):
   global ax
 
   # Clear the screen
@@ -442,9 +442,10 @@ def iteration(a, ang, tip_points):
   #print "Angles: ",ang
   #print("Tool tip position:")
   #print(a.getTool(ang)[0:3])
-  tip_points[0].append(a.getTool(ang)[0])
-  tip_points[1].append(a.getTool(ang)[1])
-  tip_points[2].append(a.getTool(ang)[2])
+  if (store_points):
+    tip_points[0].append(a.getTool(ang)[0])
+    tip_points[1].append(a.getTool(ang)[1])
+    tip_points[2].append(a.getTool(ang)[2])
 
   # Draw previous tool positions
   ax.plot_wireframe(tip_points[0], tip_points[1], tip_points[2], color='r')
@@ -502,15 +503,15 @@ def main():
   ang = [0,pi/4,pi/4]
 
   tip_points = []
-  tip_points.append([a.getTool(ang)[0]])
-  tip_points.append([a.getTool(ang)[1]])
-  tip_points.append([a.getTool(ang)[2]])
+  tip_points.append([])
+  tip_points.append([])
+  tip_points.append([])
 
   strokes = PEN_STROKES
-
+  store_points = False
   while 1:
     # Run main iterative loop for drawing
-    iteration(a, ang, tip_points)
+    iteration(a, ang, tip_points, store_points)
 
     # Get user input
     d = input("direction as list / angles as tuple?>")
@@ -522,17 +523,18 @@ def main():
       ang = d
     else:
       if (d == "reset"):
+        store_points = False
         ang = [0,pi/4,pi/4]
       if (d == "clear" or "reset"):
         del tip_points[:][:]
       if (d == "draw"):
         for pts in strokes:
           print(pts)
-          a,ang = goToPoint(a,ang,convertpage(pts[0][0]/10.0, pts[0][1]/10.0),tip_points)
-
+          a,ang = goToPoint(a,ang,convertpage(pts[0][0]/10.0, pts[0][1]/10.0),tip_points, store_points)
+	  store_points = True
           sleep(1)
           
-          a,ang = goToPoint(a,ang,convertpage(pts[1][0]/10.0, pts[1][1]/10.0),tip_points)
+          a,ang = goToPoint(a,ang,convertpage(pts[1][0]/10.0, pts[1][1]/10.0),tip_points, store_points)
 
           sleep(1)
           
