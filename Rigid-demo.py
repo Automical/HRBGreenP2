@@ -135,7 +135,29 @@ class Arm( object ):
   """
   def __init__(self):
     # link lengths
-    self.ll = asarray([3,3,3,3,3,3])
+    self.ll = asarray([3,3,3])
+    self.geom = asarray([[0,0,0,0],[0,0,3,6],[0,3,3,3]])
+    print(self.geom)
+    w = asarray([[0,0,1],[0,1,0],[0,1,0]])
+    w1 = asarray([0,0,1])
+    w2 = asarray([0,1,0])
+    w3 = asarray([0,1,0])
+    v1 = -cross(w1,[0,0,3])
+    v2 = -cross(w2,[0,0,6])
+    v3 = -cross(w3,[0,0,9])
+    self.tw = []
+    tw1 = concatenate([v1,w1],0)
+    tw2 = concatenate([v2,w2],0)
+    tw3 = concatenate([v3,w3],0)
+    
+    self.tw.append(tw1)
+    self.tw.append(tw2)
+    self.tw.append(tw3)
+    #self.tw = [[(tw1)],[(tw2)],[(tw3)]]
+    
+    self.tw = asarray(self.tw)
+    print(self.tw)
+    self.tool = asarray([0,6,3,1]).T
     # arm geometry to draw
     d=0.2
     '''
@@ -154,6 +176,8 @@ class Arm( object ):
     geom = concatenate([
       hexa, hexa[:,[0,2,1,3]], sqr,
     ], axis=0)
+    '''
+    
     '''
     self.geom = [( asarray([[0,0,0,1]]) ).T ]
     #
@@ -180,7 +204,7 @@ class Arm( object ):
     # Build an array of collected twists
     self.tw = asarray(tw)
     self.tool = asarray([LL,0,0,1]).T
-    
+    '''
     
     # overwrite method with jacobian function
     self.getToolJac = jacobian_cdas( 
@@ -330,6 +354,9 @@ class Arm( object ):
     x.append(float(tp[0]))
     y.append(float(tp[1]))
     z.append(float(tp[2]))
+    print(x)
+    print(y)
+    print(z)
     ax.plot( x, y, z,  zdir='z' )
     ax.plot( x, y, z, 'hk', zdir='z' )
     #ax.plot(tp[0],tp[1],tp[2],'hr',zdir='z')
@@ -395,7 +422,7 @@ def main():
   plt.show()
   a = Arm()
   #f = gcf()
-  ang = [0,0,0,0,0,0]
+  ang = [0,0,0]
   while 1:
     #a.fig.set(visible=0)
     #clf()
