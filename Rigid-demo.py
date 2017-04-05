@@ -428,7 +428,13 @@ def main():
   point3 = rotation * np.matrix([[20.32],[27.94],[0]]) + translation
   point4 = rotation * np.matrix([[0],[27.94],[0]]) + translation
 
-  
+  x = asarray([float(point1[0]),float(point2[0]),float(point3[0]),float(point4[0]),float(point1[0])])
+  y = asarray([float(point1[1]),float(point2[1]),float(point3[1]),float(point4[1]),float(point1[1])])
+  z = asarray([float(point1[2]),float(point2[2]),float(point3[2]),float(point4[2]),float(point1[2])])
+  print("paper")
+  print(x)
+  print(y)
+  print(z)
   plt.show()
   a = Arm()
   #f = gcf()
@@ -437,7 +443,9 @@ def main():
     #a.fig.set(visible=0)
     #clf()
     ax.clear()
+    ax.plot_wireframe(x,y,z)
     a.plot3D(ang)
+    
     plt.draw()
     #a.fig.set(visible=1)
     #draw()
