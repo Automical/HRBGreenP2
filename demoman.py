@@ -539,7 +539,6 @@ def main():
           a,ang = goToPoint(a,ang,convertpage(pts[1][0]/10.0, pts[1][1]/10.0),tip_points, store_points)
           
           sleep(1)
-        
         store_points = False
   
 main()
