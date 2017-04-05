@@ -377,6 +377,16 @@ class Arm( object ):
     xlabel('X'); ylabel('Z')
     '''
 
+class ConvertPage(object):
+  def __init__(self, o, b1, b2):
+    self.origin = o
+    self.basis1 = b1
+    self.basis2 = b2
+        
+  def __call__(self, x, y):
+    return self.origin + self.basis1 * x + self.basis2 * y
+
+
 def main():
   global fig, ax
   """
@@ -395,6 +405,17 @@ def main():
   point2 = rotation * np.matrix([[20.32],[0],[0]]) + translation
   point3 = rotation * np.matrix([[20.32],[27.94],[0]]) + translation
   point4 = rotation * np.matrix([[0],[27.94],[0]]) + translation
+
+  basis1 = point2-point1
+  basis1 = basis1/np.sqrt(np.multiply(basis1,basis1)).sum()
+  #print('basis1')
+  #print(basis1)
+  basis2 = point3-point1
+  basis2 = basis2/np.sqrt(np.multiply(basis2,basis2)).sum()
+
+  convertpage = ConvertPage(point1, basis1, basis2)
+
+  convertpage(0,0)
 
   x = asarray([float(point1[0]),float(point2[0]),float(point3[0]),float(point4[0]),float(point1[0])])
   y = asarray([float(point1[1]),float(point2[1]),float(point3[1]),float(point4[1]),float(point1[1])])
