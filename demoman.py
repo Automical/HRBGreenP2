@@ -406,7 +406,7 @@ def main():
   plt.show()
   a = Arm()
   #f = gcf()
-  ang = [0,0,0]
+  ang = [0,pi/4,pi/4]
   while 1:
     #a.fig.set(visible=0)
     #clf()
