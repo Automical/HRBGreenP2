@@ -1,6 +1,7 @@
 
 from scipy.linalg import expm as expM
-
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 def seToSE( x ):
   """
@@ -137,6 +138,7 @@ class Arm( object ):
     self.ll = asarray([3,3,3,3,3,3])
     # arm geometry to draw
     d=0.2
+    '''
     hexa = asarray([
         [ 0, d,1-d, 1, 1-d, d, 0],
         [ 0, 1,  1, 0,  -1,-1, 0],
@@ -152,6 +154,7 @@ class Arm( object ):
     geom = concatenate([
       hexa, hexa[:,[0,2,1,3]], sqr,
     ], axis=0)
+    '''
     self.geom = [( asarray([[0,0,0,1]]) ).T ]
     #
     # Build twist matrices 
@@ -159,12 +162,12 @@ class Arm( object ):
     #
     tw = []
     LL = 0
+    
     for n,ll in enumerate(self.ll):
       # Scale the geometry to the specifies link length (ll)
       # Shift it to the correct location (LL, sum of the ll values)
-      self.geom.append( 
-        ( asarray([ll,1,1,1])*geom+[LL,0,0,0] ).T
-      )
+      self.geom.append([( asarray([[LL,0,0,1]]) ).T ])
+
       # Compute the twist for this segment; 
       # twists alternate between the z and y axes
       w = asarray([0,(n+1) % 2, n % 2])
@@ -177,6 +180,8 @@ class Arm( object ):
     # Build an array of collected twists
     self.tw = asarray(tw)
     self.tool = asarray([LL,0,0,1]).T
+    
+    
     # overwrite method with jacobian function
     self.getToolJac = jacobian_cdas( 
       self.getTool, ones(self.tw.shape[0])*0.05 
@@ -189,9 +194,21 @@ class Arm( object ):
     """
     ang = asarray(ang)[:,newaxis]
     tw = ang * self.tw
+    #print('what')
+    #print('tw')
+    #print(tw)
+    #print('ang')
+    #print(ang)
+    #print('selftw')
+    #print(self.tw)
     A = [identity(4)]
+    #print('calling at')
     for twi in tw:
       M = seToSE(twi)
+      #print('twi')
+      #print(twi)
+      #print('M')
+      #print(M)
       A.append(dot(A[-1],M))
     return A
     
@@ -201,6 +218,8 @@ class Arm( object ):
     """
     # Get the rigid transformation for the last segment of the arm
     M = self.at(ang)[-1]
+    #print('M')
+    #print(M)
     return dot(M, self.tool)
   
   def getToolJac( self, ang ):
@@ -217,6 +236,12 @@ class Arm( object ):
     Display the specified axes of the arm at the specified set of angles
     """
     A = self.at(ang)
+    print("A")
+    print(A)
+    print("geom")
+    print(self.geom)
+    print("zip")
+    print(zip(A,self.geom))
     for a,g in zip(A, self.geom):
       ng = dot(a,g)
       plot( ng[axI,:], ng[axJ,:], '.-' )
@@ -226,9 +251,103 @@ class Arm( object ):
     
 
   def plot3D( self, ang ):
+    global ax
     """
     Plot arm in 3 views
     """
+    '''
+    #Axes3D.plot_wireframe(X, Y, Z)
+    A = self.at(ang)
+    print("A")
+    print(A)
+    print("shape A")
+    print(shape(A))
+    print("ang")
+    print(ang)
+    #print("zip")
+    #print(zip(A,self.geom))
+    #print("starting loop")
+    print('tw')
+    print(self.tw)
+    print('get tool')
+    t=self.getTool( ang );
+    print(t)
+    '''
+    '''
+    for a,g in zip(A, self.geom):
+      print('a')
+      print(a)
+      print('g')
+      print(g)
+      ng = dot(a,g)
+      print('ng0')
+      print(ng[0,:])
+      print('ng1')
+      print(ng[1,:])
+      print('ng2')
+      print(ng[2,:])
+      #print(ng)
+      #print(shape(ng))
+      Axes3D.plot(self.ax,ng[0,:],ng[1,:],ng[2,:])
+      #plot( ng[axI,:], ng[axJ,:], '.-' )
+      '''
+    x = []
+    y = []
+    z = []
+    print('A')
+    A = self.at(ang)
+    print("zip")
+    print(zip(A,self.geom))
+    for a,g in zip(A, self.geom):
+      print('loop start')
+      ng = dot(a,g)
+      '''
+      print(ng)
+      print(shape(ng))
+      print(shape(ng[0]))
+      print(shape(ng[1]))
+      print(shape(ng[2]))
+      '''
+      '''
+      print('ng test')
+      print('ng')
+      print(ng)
+      print('ng0')
+      print(ng[0])
+      print('ng1')
+      print(ng[1])
+      print('ng2')
+      print(ng[2])
+      '''
+      x.append(float(ng[0]))
+      y.append(float(ng[1]))
+      z.append(float(ng[2]))
+    #self.ax.plot( ng[0,:], ng[1,:], ng[2,:], label='parametric curve' )
+    print(x)
+    print(y)
+    print(z)
+    ax.plot( x, y, z, label='parametric curve' )
+    ax.set_xlim(-20,20)
+    ax.set_xlabel('x')
+    ax.set_ylim(-20,20)
+    ax.set_ylabel('y')
+    ax.set_zlim(-20,20)
+    ax.set_zlabel('z')
+    tp = dot(a, self.tool)
+    
+    #ax.plot( [x[-1],tp[0]], [y[-1],tp[1], [z[-1],tp[2]], 'hk' )
+    #[x[-1],ax.pl]ot[y[-1],( tp[0], tp[1], tp[2], '.y' )
+      
+    #print(A)
+    #tp = dot(a, self.tool)
+    #print("tool")
+    #print(tp)
+    
+    '''
+    A = self.at(ang)
+    print("A")
+    print(A)
+    
     ax = [-20,20,-20,20]
     subplot(2,2,1)
     self.plotIJ(ang,0,1)
@@ -248,23 +367,30 @@ class Arm( object ):
     axis(ax)
     grid(1)
     xlabel('X'); ylabel('Z')
+    '''
 
-
-def example():
+def main():
+  global fig, ax
   """
   Run an example of a robot arm
   
   This can be steered via inverse Jacobian, or positioned.
   """
+  fig = plt.figure()
+  ax = fig.gca(projection='3d')
+  
+  plt.show()
   a = Arm()
-  f = gcf()
+  #f = gcf()
   ang = [0,0,0,0,0,0]
   while 1:
-    f.set(visible=0)
-    clf()
+    #a.fig.set(visible=0)
+    #clf()
+    ax.clear()
     a.plot3D(ang)
-    f.set(visible=1)
-    draw()
+    
+    #a.fig.set(visible=1)
+    #draw()
     print "Angles: ",ang
     d = input("direction as list / angles as tuple?>")
     if type(d) == list:
@@ -273,4 +399,4 @@ def example():
     else:
       ang = d
   
-example()
+main()
