@@ -411,7 +411,7 @@ def goToPoint(a,ang,end,tip_points):
 
     ang = ang + dot(pinv(Jt)[:,:len(d)],d)
     iteration(a, ang, tip_points)
-    sleep(0.01)
+    #sleep(.1)
     if (dist(tool,end)<1):
       go = 0;
     #print(tool)
@@ -448,10 +448,12 @@ def iteration(a, ang, tip_points):
 
   # Draw previous tool positions
   ax.plot_wireframe(tip_points[0], tip_points[1], tip_points[2], color='r')
-
+  #draw()
   # Draw all buffered plots
   plt.draw()
-  pause(.01)
+  plt.pause(.001)
+  #plt.iooff()
+  show()
 
 def main():
   global fig, ax,x,y,z
