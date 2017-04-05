@@ -401,7 +401,7 @@ def main():
     #clf()
     ax.clear()
     a.plot3D(ang)
-    
+    plt.draw()
     #a.fig.set(visible=1)
     #draw()
     print "Angles: ",ang
