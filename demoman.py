@@ -474,12 +474,16 @@ def main():
   point2 = rotation * np.matrix([[20.32],[0],[0]]) + translation
   point3 = rotation * np.matrix([[20.32],[27.94],[0]]) + translation
   point4 = rotation * np.matrix([[0],[27.94],[0]]) + translation
+  print(point1)
+  print(point2)
+  print(point3)
+  print(point4)
 
   basis1 = point2-point1
   basis1 = basis1/np.sqrt(np.multiply(basis1,basis1)).sum()
   #print('basis1')
   #print(basis1)
-  basis2 = point3-point1
+  basis2 = point4-point1
   basis2 = basis2/np.sqrt(np.multiply(basis2,basis2)).sum()
 
   convertpage = ConvertPage(point1, basis1, basis2)
@@ -506,33 +510,35 @@ def main():
   strokes = PEN_STROKES
   store_points = False
   while 1:
-    # Run main iterative loop for drawing
-    iteration(a, ang, tip_points, store_points)
+    
 
     # Get user input
     d = input("direction as list / angles as tuple?>")
     if type(d) == list:
-      a,ang = goToPoint(a,ang,d, tip_points)
+      a,ang = goToPoint(a,ang,d, tip_points, True)
       #Jt = a.getToolJac(ang)
       #ang = ang + dot(pinv(Jt)[:,:len(d)],d)
     elif type(d) == tuple:
       ang = d
+      iteration(a, ang, tip_points, store_points)
     else:
       if (d == "reset"):
         store_points = False
         ang = [0,pi/4,pi/4]
+        iteration(a, ang, tip_points, store_points)
       if (d == "clear" or "reset"):
         del tip_points[:][:]
+        iteration(a, ang, tip_points, store_points)
       if (d == "draw"):
         for pts in strokes:
           print(pts)
           a,ang = goToPoint(a,ang,convertpage(pts[0][0]/10.0, pts[0][1]/10.0),tip_points, store_points)
-	  store_points = True
+          store_points = True
           sleep(1)
           
           a,ang = goToPoint(a,ang,convertpage(pts[1][0]/10.0, pts[1][1]/10.0),tip_points, store_points)
-
-          sleep(1)
           
+          sleep(1)
+        store_points = False
   
 main()
