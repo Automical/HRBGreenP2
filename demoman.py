@@ -382,7 +382,7 @@ class Arm( object ):
 def dist(tool,end):
   return sqrt((tool[0]-end[0])**2+(tool[1]-end[1])**2+(tool[2]-end[2])**2)
     
-def goToPoint(a,ang,end):
+def goToPoint(a,ang,end,tip_points):
   global ax,x,y,z
   go = 1
   while (go):
@@ -405,10 +405,8 @@ def goToPoint(a,ang,end):
     d = asarray([tx,ty,tz])
 
     ang = ang + dot(pinv(Jt)[:,:len(d)],d)
-    #ax.clear()
-    #ax.plot_wireframe(x,y,z)
-    #a.plot3D(ang)
-    #sleep(.25)
+    iteration(a, ang, tip_points)
+    sleep(0.01)
     if (dist(tool,end)<1):
       go = 0;
     #print(tool)
@@ -501,7 +499,7 @@ def main():
     # Get user input
     d = input("direction as list / angles as tuple?>")
     if type(d) == list:
-      a,ang = goToPoint(a,ang,d)
+      a,ang = goToPoint(a,ang,d, tip_points)
       #Jt = a.getToolJac(ang)
       #ang = ang + dot(pinv(Jt)[:,:len(d)],d)
     elif type(d) == tuple:
