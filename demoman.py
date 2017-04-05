@@ -135,7 +135,7 @@ class Arm( object ):
   """
   def __init__(self):
     # link lengths
-    self.ll = asarray([10,10,10])
+    self.ll = asarray([20,20,20])
     d = 0.2
 
     self.geom = [( asarray([[0,0,0,1]]) ).T ]
@@ -405,10 +405,10 @@ def goToPoint(a,ang,end):
     d = asarray([tx,ty,tz])
 
     ang = ang + dot(pinv(Jt)[:,:len(d)],d)
-    ax.clear()
+    #ax.clear()
     #ax.plot_wireframe(x,y,z)
-    a.plot3D(ang)
-    sleep(.25)
+    #a.plot3D(ang)
+    #sleep(.25)
     if (dist(tool,end)<1):
       go = 0;
     #print(tool)
@@ -473,10 +473,10 @@ def main():
   while 1:
     # Clear the screen
     ax.clear()
-
+    
     # Draw paper
-    ax.plot_wireframe(x,y,z)
-
+    ax.plot_wireframe(x,y,z,color='k')
+    
     # Draw robot arm
     a.plot3D(ang)
 
@@ -488,7 +488,7 @@ def main():
     tip_points_z.append(a.getTool(ang)[2])
 
     # Draw previous tool positions
-    ax.plot_wireframe(tip_points_x, tip_points_y, tip_points_z)
+    ax.plot_wireframe(tip_points_x, tip_points_y, tip_points_z,color='r')
 
     # Draw all buffered plots
     plt.draw()
