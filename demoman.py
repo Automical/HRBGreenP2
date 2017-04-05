@@ -3,6 +3,11 @@ from scipy.linalg import expm as expM
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from time import sleep
+
+#global constants
+PAPER = np.matrix([[ 3./5, 4./5, 0., 50.],[-4./5, 3./5, 0., 0.],[0.,0.,1.,0.],[0.,0.,0.,1.]])
+PEN_STROKES = [ [(10,0),(10,30)], [[10,15],[20,15]],[[20,0],[20,30]] ]
+
 def seToSE( x ):
   """
   Convert a twist (a rigid velocity, element of se(3)) to a rigid
@@ -436,7 +441,7 @@ def main():
   fig = gcf()
   ax = fig.gca(projection='3d')
 
-  paper = np.matrix([[ 3./5, 4./5, 0., 50.],[-4./5, 3./5, 0., 0.],[0.,0.,1.,0.],[0.,0.,0.,1.]])  #4x4 rigid body transformation for paper position
+  paper = PAPER  #4x4 rigid body transformation for paper position
   rotation = paper[0:3,0:3]
   translation = paper[0:3,3:4]/10.0
   print(translation)
