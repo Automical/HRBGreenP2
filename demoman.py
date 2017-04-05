@@ -434,7 +434,7 @@ def iteration(a, ang, tip_points):
   ax.clear()
 
   # Draw paper
-  ax.plot_wireframe(x,y,z, color='k')
+  ax.plot(x,y,z, color='k')
 
   # Draw robot arm
   a.plot3D(ang)
