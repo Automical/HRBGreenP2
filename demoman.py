@@ -472,9 +472,15 @@ def main():
   a = Arm()
   #f = gcf()
   ang = [0,pi/4,pi/4]
-  tip_points_x = [a.getTool(ang)[0]]
-  tip_points_y = [a.getTool(ang)[1]]
-  tip_points_z = [a.getTool(ang)[2]]
+  #tip_points_x = [a.getTool(ang)[0]]
+  #tip_points_y = [a.getTool(ang)[1]]
+  #tip_points_z = [a.getTool(ang)[2]]
+  tip_points_x = []
+  tip_points_y = []
+  tip_points_z = []
+
+  strokes = PEN_STROKES #predefined pen strokes
+
   while 1:
     # Clear the screen
     ax.clear()
@@ -486,11 +492,11 @@ def main():
     a.plot3D(ang)
 
     print "Angles: ",ang
-    print("Tool tip position:")
-    print(a.getTool(ang)[0:3])
-    tip_points_x.append(a.getTool(ang)[0])
-    tip_points_y.append(a.getTool(ang)[1])
-    tip_points_z.append(a.getTool(ang)[2])
+    #print("Tool tip position:")
+    #print(a.getTool(ang)[0:3])
+    #tip_points_x.append(a.getTool(ang)[0])
+    #tip_points_y.append(a.getTool(ang)[1])
+    #tip_points_z.append(a.getTool(ang)[2])
 
     # Draw previous tool positions
     ax.plot_wireframe(tip_points_x, tip_points_y, tip_points_z,color='r')
@@ -513,5 +519,43 @@ def main():
         del tip_points_x[:]
         del tip_points_y[:]
         del tip_points_z[:]
+      if (d == "draw"):
+        for pts in strokes:
+          print(pts)
+          #print(pts[0])
+          #print(convertpage(pts[0][0], pts[0][1]))
+          a,ang = goToPoint(a,ang,convertpage(pts[0][0]/10.0, pts[0][1]/10.0))
+          ax.clear()
+          #print("cleared plot")
+          ax.plot_wireframe(x,y,z,color='k')
+          #print("drawing paper")
+          a.plot3D(ang)
+          #print('plotting 3d')
+          tip_points_x.append(a.getTool(ang)[0])
+          tip_points_y.append(a.getTool(ang)[1])
+          tip_points_z.append(a.getTool(ang)[2])
+          #print('appended points')
+          ax.plot_wireframe(tip_points_x, tip_points_y, tip_points_z,color='r')
+          #print('plotting traces')
+          plt.draw()
+          #print("drawing fig")
+
+          sleep(1)
+          #print('past sleep')
+          #print(convertpage(pts[1][0], pts[1][1]))
+          a,ang = goToPoint(a,ang,convertpage(pts[1][0]/10.0, pts[1][1]/10.0))
+          #print('went to point')
+          ax.clear()
+          ax.plot_wireframe(x,y,z,color='k')
+          a.plot3D(ang)
+          #print('plotting3d')
+          tip_points_x.append(a.getTool(ang)[0])
+          tip_points_y.append(a.getTool(ang)[1])
+          tip_points_z.append(a.getTool(ang)[2])
+          ax.plot_wireframe(tip_points_x, tip_points_y, tip_points_z,color='r')
+          plt.draw()
+          #print('made it past second')
+          sleep(1)
+          
   
 main()
