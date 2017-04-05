@@ -2,7 +2,7 @@ import numpy as np
 from scipy.linalg import expm as expM
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-
+from time import sleep
 def seToSE( x ):
   """
   Convert a twist (a rigid velocity, element of se(3)) to a rigid
@@ -295,7 +295,7 @@ class Arm( object ):
       print(shape(ng[1]))
       print(shape(ng[2]))
       '''
-      
+      '''
       print('ng test')
       print('ng')
       print(ng)
@@ -311,20 +311,21 @@ class Arm( object ):
       print(y)
       print('z')
       print(z)
+      '''
       x.append(float(ng[0]))
       y.append(float(ng[1]))
       z.append(float(ng[2]))
     #self.ax.plot( ng[0,:], ng[1,:], ng[2,:], label='parametric curve' )
-    print(x)
-    print(y)
-    print(z)
+    #print(x)
+    #print(y)
+    #print(z)
     tp = self.getTool(ang)
     x.append(float(tp[0]))
     y.append(float(tp[1]))
     z.append(float(tp[2]))
-    print(x)
-    print(y)
-    print(z)
+    #print(x)
+    #print(y)
+    #print(z)
     ax.plot( x, y, z,  zdir='z' )
     ax.plot( x, y, z, 'hk', zdir='z' )
     #ax.plot(tp[0],tp[1],tp[2],'hr',zdir='z')
@@ -377,8 +378,44 @@ class Arm( object ):
     xlabel('X'); ylabel('Z')
     '''
 
+def dist(tool,end):
+  return sqrt((tool[0]-end[0])**2+(tool[1]-end[1])**2+(tool[2]-end[2])**2)
+    
+def goToPoint(a,ang,end):
+  global ax,x,y,z
+  go = 1
+  while (go):
+    tool = a.getTool(ang)
+    Jt = a.getToolJac(ang)
+    if (end[0]-tool[0])>0:
+      tx = .25
+    else:
+      tx=-.25
+
+    if (end[1]-tool[1])>0:
+      ty = .25
+    else:
+      ty=-.25
+    if (end[2]-tool[2])>0:
+      tz = .25
+    else:
+      tz=-.25
+
+    d = asarray([tx,ty,tz])
+
+    ang = ang + dot(pinv(Jt)[:,:len(d)],d)
+    #ax.clear()
+    #ax.plot_wireframe(x,y,z)
+    #a.plot3D(ang)
+    #sleep(.25)
+    if (dist(tool,end)<1):
+      go = 0;
+    #print(tool)
+    
+  return a,ang
+
 def main():
-  global fig, ax
+  global fig, ax,x,y,z
   """
   Run an example of a robot arm
   
@@ -418,10 +455,12 @@ def main():
     #a.fig.set(visible=1)
     #draw()
     print "Angles: ",ang
+    print "Tool: ",a.getTool(ang)
     d = input("direction as list / angles as tuple?>")
     if type(d) == list:
-      Jt = a.getToolJac(ang)
-      ang = ang + dot(pinv(Jt)[:,:len(d)],d)
+      a,ang = goToPoint(a,ang,d)
+      #Jt = a.getToolJac(ang)
+      #ang = ang + dot(pinv(Jt)[:,:len(d)],d)
     else:
       ang = d
   
