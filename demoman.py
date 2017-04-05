@@ -389,7 +389,7 @@ def main():
 
   paper = np.matrix([[ 3./5, 4./5, 0., 50.],[-4./5, 3./5, 0., 0.],[0.,0.,1.,0.],[0.,0.,0.,1.]])  #4x4 rigid body transformation for paper position
   rotation = paper[0:3,0:3]
-  translation = paper[0:3,3:4]
+  translation = paper[0:3,3:4]/10.0
   print(translation)
   point1 = rotation * np.matrix([[0],[0],[0]]) + translation
   point2 = rotation * np.matrix([[20.32],[0],[0]]) + translation
