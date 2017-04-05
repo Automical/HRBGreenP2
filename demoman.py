@@ -135,7 +135,7 @@ class Arm( object ):
   """
   def __init__(self):
     # link lengths
-    self.ll = asarray([10,10,10])
+    self.ll = asarray([20,20,20])
     d = 0.2
 
     self.geom = [( asarray([[0,0,0,1]]) ).T ]
@@ -424,12 +424,14 @@ class ConvertPage(object):
   def __call__(self, x, y):
     return self.origin + self.basis1 * x + self.basis2 * y
 
-def iteration(ax, a, ang, tip_points):
+def iteration(a, ang, tip_points):
+  global ax
+
   # Clear the screen
   ax.clear()
 
   # Draw paper
-  ax.plot_wireframe(x,y,z)
+  ax.plot_wireframe(x,y,z, color='k')
 
   # Draw robot arm
   a.plot3D(ang)
@@ -442,11 +444,10 @@ def iteration(ax, a, ang, tip_points):
   tip_points[2].append(a.getTool(ang)[2])
 
   # Draw previous tool positions
-  ax.plot_wireframe(tip_points[0], tip_points[1], tip_points[2])
+  ax.plot_wireframe(tip_points[0], tip_points[1], tip_points[2], color='r')
 
   # Draw all buffered plots
   plt.draw()
-
 
 def main():
   global fig, ax,x,y,z
@@ -495,7 +496,7 @@ def main():
   tip_points.append([a.getTool(ang)[2]])
   while 1:
     # Run main iterative loop for drawing
-    iteration(ax, a, ang, tip_points)
+    iteration(a, ang, tip_points)
 
     # Get user input
     d = input("direction as list / angles as tuple?>")
