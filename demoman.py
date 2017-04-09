@@ -5,8 +5,12 @@ from mpl_toolkits.mplot3d import Axes3D
 from time import sleep
 
 #global constants
-#PAPER = np.matrix([[ 3./5, 4./5, 0., 50.],[-4./5, 3./5, 0., 0.],[0.,0.,1.,0.],[0.,0.,0.,1.]])
-PAPER = np.matrix([[ 0, 4./5, -3./5., 50.],[-4./5, 0, 3./5., 0.],[0.,0.,1.,0.],[0.,0.,0.,1.]])
+
+#4x4 Rigid body transformation for paper representation
+PAPER = np.matrix([[ 3./5, 4./5, 0., 50.],[-4./5, 3./5, 0., 0.],[0.,0.,1.,0.],[0.,0.,0.,1.]])
+
+#list of lists of lists/tuples representing pen strokes
+
 PEN_STROKES = [ [(100,0),(100,200)], [[100,100],[200,100]],[[200,00],[200,200]] ]
 
 def seToSE( x ):
