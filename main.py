@@ -392,7 +392,21 @@ def calcRigidTransform(p1,p2,p3,p4,r1,r2,r3,r4):
   Ro[0:3,3:4] = np.matrix([[p1[0]],[p1[1]],[p1[2]],[1]])
   return Ro
   
-
+def getToolLoc(arm,ser):
+  ang = np.zeros(1,num_motors)
+  for (i in range(1,num_motors):
+     ang[i] = ser[i].get_pos()
+   
+   ang = robAngToWorldAng(ang)
+   
+   returm arm.getTool(ang)
+       
+   
+   
+#Robot servo angles may not 1-1 correspond to arm frame angles
+def robAngToWorldAng(ang):
+     
+   return ang/1000.0;
   
 #-----------------------------------------------------------------------------------------------
 #App
@@ -402,13 +416,25 @@ class BlueApp( JoyApp ):
     self.ang = [0,pi/4,pi/4]
     self.ser_t = self.robot.at
     #Replace with real motor value
+    
+    self.arm = Arm()
+    
+    self.paper = Paper()
     #Order in the direction of joints
     #self.ser = [self.ser_t.Nx45,self.ser_t.Nx23,self.ser_t.Nx4E];
     self.ser = [0,0,0];
     
-    self.arm = Arm()
+    self.p1_d = np.matrix([[0],[0],[0]])
+    self.p2_d = np.matrix([[20.32],[0],[0]])
+    self.p3_d = np.matrix([[20.32],[27.94],[0]])
+    self.p4_d = np.matrix([[0],[27.94],[0]])
+    self.p1 = self.p1_d
+    self.p2 = self.p2_d
+    self.p3 = self.p3_d
+    self.p4 = self.p4_d
     
-    
+    self.T = np.matrix([[ 3./5, 4./5, 0., 50.],[-4./5, 3./5, 0., 0.],[0.,0.,1.,0.],[0.,0.,0.,1.]])
+
     
   def onStart( self ):
     print("start")
@@ -419,7 +445,20 @@ class BlueApp( JoyApp ):
     if evt.type == KEYDOWN:
       if evt.key == K_UP:
         print("up")
-
+      elif evt.key == K_o:
+        for (i in range(1,num_motors)):
+          self.ser[i].go_slack()
+      elif evt.key == K_a:
+        self.p1 = getToolLoc(self.arm,self.ser)
+      elif evt.key == K_q:
+        self.p2 = getToolLoc(self.arm,self.ser)
+      elif evt.key == K_w:
+        self.p3 = getToolLoc(self.arm,self.ser)
+      elif evt.key == K_s:
+        self.p4 = getToolLoc(self.arm,self.ser)
+      elif evt.key == K_z:
+        self.T = calcRigidTransform(self.p1,self.p2,self.p3,sel.fp4,self.p1_d,self.p2_d,self.p3_d,self.p4_d)
+        self.paper.update_paper(self.T)
 
 
 
