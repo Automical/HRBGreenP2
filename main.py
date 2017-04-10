@@ -16,7 +16,7 @@ num_motors = 3
 num_arm_motors = 3
 dist_thresh = 1
 dt_max = .25
-
+filename = 'h.txt'
 #-----------------------------------------------------------------------------------------------
 
 
@@ -455,7 +455,9 @@ class GreenApp( JoyApp ):
     self.p4 = self.p4_d
     
     self.T = np.matrix([[ 3./5, 4./5, 0., 50.],[-4./5, 3./5, 0., 0.],[0.,0.,1.,0.],[0.,0.,0.,1.]])
-
+    self.points_on = [[],[]]
+    self.points_off = [[],[]]
+    
     
   def onStart( self ):
     print("start")
@@ -486,7 +488,13 @@ class GreenApp( JoyApp ):
         self.paper.update_paper(self.T)
       elif evt.key == K_f:
         progress("read file")
-        
+        f = open(filename, 'r')
+        l = f.readlines()[0]
+        l=l.replace('(','[')
+        l=l.replace(')',']')
+        l=l.replace(' ','')
+        z=ast.literal_eval(l)
+        self.points_on = z;
 
 
 
