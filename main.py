@@ -369,7 +369,7 @@ class GotoPoint(Plan):
       da = self.control.generateAngleDelta(self.arm,self.ang,self.end)
       self.ang = self.ang + da
       
-      for (i in range(1,num_motors_arm)):
+      for i in range(1,num_motors_arm):
         self.app.ser[i].set_pos(self.ang[i])
         
       yield self.forDuration(.1)
@@ -395,12 +395,12 @@ def calcRigidTransform(p1,p2,p3,p4,r1,r2,r3,r4):
   
 def getToolLoc(arm,ser):
   ang = np.zeros(1,num_motors_arm)
-  for (i in range(1,num_motors_arm):
-     ang[i] = ser[i].get_pos()
+  for i in range(1,num_motors_arm):
+    ang[i] = ser[i].get_pos()
    
-   ang = robAngToWorldAng(ang)
-   
-   returm arm.getTool(ang)
+  ang = robAngToWorldAng(ang)
+  
+  return arm.getTool(ang)
        
    
    
@@ -409,9 +409,28 @@ def robAngToWorldAng(ang):
      
    return ang/1000.0;
   
+class DrawPlan( Plan ):
+  def __init__(self,app,*arg,**kw):
+    Plan.__init__(self,app,*arg,**kw)
+    fig = gcf()
+    self.ax = fig.gca(projection='3d')
+
+  def behavior(self):
+    # Clear the screen
+    ax.clear()
+
+    # Draw workspace
+    plot_cuboid((19.24,0,15.24),(30.48,30.48,30.48))
+
+    plt.draw()
+    plt.pause(.0001)
+    show()
+    yield(self.forDuration(.1))
+    
+
 #-----------------------------------------------------------------------------------------------
 #App
-class BlueApp( JoyApp ):
+class GreenApp( JoyApp ):
   def __init__(self,*arg,**kw):
     JoyApp.__init__( self, confPath="$/cfg/JoyApp.yml", *arg, **kw) 
     self.ang = [0,pi/4,pi/4]
@@ -447,7 +466,7 @@ class BlueApp( JoyApp ):
       if evt.key == K_UP:
         print("up")
       elif evt.key == K_o:
-        for (i in range(1,num_motors)):
+        for i in range(1,num_motors):
           self.ser[i].go_slack()
       elif evt.key == K_a:
         progress("Read p1")
@@ -478,6 +497,6 @@ class BlueApp( JoyApp ):
 if __name__=="__main__":
   
   import sys
-  app=GreenApp(wphAddr=WAYPOINT_HOST, robot = dict(count=num_motors
+  app=GreenApp(robot = dict(count=num_motors
                    ,port=dict(TYPE='TTY', glob="/dev/ttyACM*", baudrate=115200)))
   app.run()
