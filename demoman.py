@@ -3,11 +3,15 @@ from scipy.linalg import expm as expM
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from time import sleep
+from itertools import product, combinations
 
 #global constants
 
 #4x4 Rigid body transformation for paper representation
-PAPER = np.matrix([[ 3./5, 4./5, 0., 50.],[-4./5, 3./5, 0., 0.],[0.,0.,1.,0.],[0.,0.,0.,1.]])
+PAPER = np.matrix([[ 1/1.414, 0, -1/1.414, 100.],[0., 1,.0, -100.],[1/1.414,0.,1/1.414,0.],[0.,0.,0.,1.]])
+
+#workspace corners
+#WORKSPACE = [[0,0,0],[30.48,0,0],[30.48,30.48,0],[0,30.48,0],[0,0,0],[0,0,30.48],[30.48,0,30.48],[30.48,0,0],[0,0,0],[0,0,30.48],[0,30.48,30.48],[0,30.48,0],[0,0,0]
 
 #list of lists of lists/tuples representing pen strokes
 PEN_STROKES = [ [(100,0),(100,200)], [[100,100],[200,100]],[[200,00],[200,200]] ]
@@ -431,11 +435,62 @@ class ConvertPage(object):
   def __call__(self, x, y):
     return self.origin + self.basis1 * x + self.basis2 * y
 
+#plots workspace
+def plot_cuboid(center, size):
+    """
+       Create a data array for cuboid plotting.
+
+
+       ============= ================================================
+       Argument      Description
+       ============= ================================================
+       center        center of the cuboid, triple
+       size          size of the cuboid, triple, (x_length,y_width,z_height)
+       :type size: tuple, numpy.array, list
+       :param size: size of the cuboid, triple, (x_length,y_width,z_height)
+       :type center: tuple, numpy.array, list
+       :param center: center of the cuboid, triple, (x,y,z)
+   """
+    # suppose axis direction: x: to left; y: to inside; z: to upper
+    # get the (left, outside, bottom) point
+    ox, oy, oz = center
+    l, w, h = size
+
+    x = np.linspace(ox-l/2,ox+l/2,num=2)
+    y = np.linspace(oy-w/2,oy+w/2,num=2)
+    z = np.linspace(oz-h/2,oz+h/2,num=2)
+    x1, z1 = np.meshgrid(x, z)
+    y11 = np.ones_like(x1)*(oy-w/2)
+    y12 = np.ones_like(x1)*(oy+w/2)
+    x2, y2 = np.meshgrid(x, y)
+    z21 = np.ones_like(x2)*(oz-h/2)
+    z22 = np.ones_like(x2)*(oz+h/2)
+    y3, z3 = np.meshgrid(y, z)
+    x31 = np.ones_like(y3)*(ox-l/2)
+    x32 = np.ones_like(y3)*(ox+l/2)
+
+    # outside surface
+    ax.plot_wireframe(x1, y11, z1, color='y', rstride=1, cstride=1, alpha=0.6)
+    # inside surface
+    ax.plot_wireframe(x1, y12, z1, color='y', rstride=1, cstride=1, alpha=0.6)
+    # bottom surface
+    ax.plot_wireframe(x2, y2, z21, color='y', rstride=1, cstride=1, alpha=0.6)
+    # upper surface
+    ax.plot_wireframe(x2, y2, z22, color='y', rstride=1, cstride=1, alpha=0.6)
+    # left surface
+    ax.plot_wireframe(x31, y3, z3, color='y', rstride=1, cstride=1, alpha=0.6)
+    # right surface
+    ax.plot_wireframe(x32, y3, z3, color='y', rstride=1, cstride=1, alpha=0.6)
+
+
 def iteration(a, ang, tip_points, store_points):
   global ax
 
   # Clear the screen
   ax.clear()
+
+  # Draw workspace
+  plot_cuboid((19.24,0,15.24),(30.48,30.48,30.48))
 
   # Draw paper
   ax.plot(x,y,z, color='k')
