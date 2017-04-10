@@ -375,10 +375,24 @@ class GotoPoint(Plan):
 
       
 #-----------------------------------------------------------------------------------------------
-    
+#Rigid Body Definition
+
+#Numerical Solution to Wahba's problem
+#p1 is origin of measured paper, others are around paper clockwise
+#r1-r4 are original, corresponding paper points
+#returns 4x4 rigid body transform
+def calcRigidTransform(p1,p2,p3,p4,r1,r2,r3,r4):
+  B = np.matmul(p1,r1.T)+np.matmul(p2,r2.T)+np.matmul(p3,r3.T)+np.matmul(p4,r4.T)
+  U, s, V = np.linalg.svd(B, full_matrices=True)
+  M = np.matrix([[1,0,0],[0,1,0],[0,0,np.linalg.det(U)*np.linalg.det(V)]])
+  R = np.matmul(U,np.matmul(M,V))
+  
+  Ro = np.zeros(4,4)
+  Ro[0:3,0:3] = R
+  Ro[0:3,3:4] = np.matrix([[p1[0]],[p1[1]],[p1[2]],[1]])
+  return Ro
   
 
-  
   
 #-----------------------------------------------------------------------------------------------
 #App
