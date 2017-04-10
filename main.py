@@ -12,6 +12,7 @@ from time import sleep
 #-----------------------------------------------------------------------------------------------
 #Global Constants
 num_motors = 3
+num_arm_motors = 3
 dist_thresh = 1
 dt_max = .25
 
@@ -368,7 +369,7 @@ class GotoPoint(Plan):
       da = self.control.generateAngleDelta(self.arm,self.ang,self.end)
       self.ang = self.ang + da
       
-      for (i in range(1,num_motors)):
+      for (i in range(1,num_motors_arm)):
         self.app.ser[i].set_pos(self.ang[i])
         
       yield self.forDuration(.1)
@@ -393,8 +394,8 @@ def calcRigidTransform(p1,p2,p3,p4,r1,r2,r3,r4):
   return Ro
   
 def getToolLoc(arm,ser):
-  ang = np.zeros(1,num_motors)
-  for (i in range(1,num_motors):
+  ang = np.zeros(1,num_motors_arm)
+  for (i in range(1,num_motors_arm):
      ang[i] = ser[i].get_pos()
    
    ang = robAngToWorldAng(ang)
@@ -449,16 +450,23 @@ class BlueApp( JoyApp ):
         for (i in range(1,num_motors)):
           self.ser[i].go_slack()
       elif evt.key == K_a:
+        progress("Read p1")
         self.p1 = getToolLoc(self.arm,self.ser)
       elif evt.key == K_q:
+        progress("Read p2")
         self.p2 = getToolLoc(self.arm,self.ser)
       elif evt.key == K_w:
+        progress("Read p3")
         self.p3 = getToolLoc(self.arm,self.ser)
       elif evt.key == K_s:
+        progress("Read p4")
         self.p4 = getToolLoc(self.arm,self.ser)
       elif evt.key == K_z:
         self.T = calcRigidTransform(self.p1,self.p2,self.p3,sel.fp4,self.p1_d,self.p2_d,self.p3_d,self.p4_d)
         self.paper.update_paper(self.T)
+      elif evt.key == K_f:
+        progress("read file")
+        
 
 
 
