@@ -410,6 +410,11 @@ def robAngToWorldAng(ang):
      
    return ang/1000.0;
   
+def worldAngtoRobAng(ang):
+  
+  return int(ang*1000)
+
+
 class DrawPlan( Plan ):
   def __init__(self,app,*arg,**kw):
     Plan.__init__(self,app,*arg,**kw)
@@ -458,6 +463,7 @@ class GreenApp( JoyApp ):
     self.points_on = [[],[]]
     self.points_off = [[],[]]
     
+    self.point_plan = GoToPoint(self)
     
   def onStart( self ):
     print("start")
