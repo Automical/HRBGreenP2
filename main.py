@@ -501,7 +501,7 @@ class GreenApp( JoyApp ):
         l=l.replace(' ','')
         z=ast.literal_eval(l)
         self.points_on = z;
-
+        
 
 
 

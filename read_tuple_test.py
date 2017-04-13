@@ -27,6 +27,8 @@ print(z[1])
 print("second first element")
 print(z[1][0])
 
+print(z.length)
+print(z[0].length)
 
 #print(z[0])
 #print input(l)
