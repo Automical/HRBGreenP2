@@ -7,47 +7,63 @@ from itertools import product, combinations
 
 from math import *
 
+def dist(x1,y1,x2,y2):
+  return sqrt((x2-x1)**2+(y2-y1)**2);
+
 class Arm( object ):
 
   def __init__(self):
     # link lengths in cm
-    self.l1 = 10
-    self.l2 = 10
-    self.l3 = 10
-    self.l4 = 5
-    self.l5 = 10
-    self.l6 = 8
-    self.l7 = 8
+    self.l1 = 28
+    self.l2 = 35
+    self.l3 = 20
+    self.l4 = 15
+    self.l5 = 35
+    self.l6 = 10
+    self.l7 = 10
     self.l8 = 5
     
   def angFromEnd(self,x,y):
     ang = [90,90];
     
-    d1 = sqrt((x-self.l6)**2+y**2)
-    print("d1 = %f\n" % d1)
+    
+    d1 = dist(self.l6,0,x,y)
+    print("d1 = %f" % d1)
     beta = acos((self.l2**2+d1**2-self.l5**2)/(2*self.l5*d1))
-    print("beta = %f\n" % beta)
-    alpha = atan2(y,x+self.l6)
-    print("alpha = %f\n" % alpha)
+    print("beta = %f" % degrees(beta))
+    alpha = atan2(y,x-self.l6)
+    print("alpha = %f" % degrees(alpha))
     theta2 = alpha + beta;
-    print("theta2 = %f\n" % theta2)
+    print("theta2 = %f" % degrees(theta2))
 
     
     ang[1] = theta2
     
-    theta4 = acos((x-self.l2*cos(theta2))/(self.l5))
+    xc = self.l2*cos(theta2) + self.l6
+    yc = self.l2*sin(theta2)
     
-    xb = x-(self.l4+self.l5)*cos(theta4)
-    yb = y-(self.l4+self.l5)*sin(theta4)
+    print("xc = %f" % xc)
+    print("yc = %f" % yc)
     
-    d2 = sqrt((xb+self.l7)**2+self.l7**2)
+    theta4 = -atan2(yc-y,x-xc)
     
+    
+    #theta4 = acos((x-self.l2*cos(theta2))/(self.l5))
+    print("theta4 = %f" % degrees(theta4))
+    #xb = x-(self.l4+self.l5)*cos(theta4)
+    #yb = y-(self.l4+self.l5)*sin(theta4)
+    xb = self.l6 + self.l2*cos(theta2) + self.l4*cos(theta4)
+    yb = self.l2*sin(theta2) + self.l4*sin(theta4)
+    print("xb = %f" % xb)
+    print("yb = %f" % yb)
+    d2 = dist(-self.l7,0,xb,yb)
+    print("d2 = %f" % d2)
     gamma = acos((self.l1**2+d2**2-self.l3**2)/(2*self.l1*d2))
-    
+    print("gamma = %f" % degrees(gamma))
     delta = atan2(yb,xb+self.l7)
-    
+    print("delta = %f" % degrees(delta))
     theta1 = gamma+delta
-    
+    print("theta1= %f" % degrees(theta1))
     ang[0] = theta1
     
     return ang
@@ -57,7 +73,10 @@ def main():
   
   a = Arm()
   
-  ang = a.angFromEnd(15,10)
+  x = 30
+  y = 5
+  
+  ang = a.angFromEnd(x,y)
   
   print(ang)
   
