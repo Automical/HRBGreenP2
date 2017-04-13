@@ -78,7 +78,7 @@ class Arm( object ):
     xa = -self.l7+self.l1*cos(ang[0])
     ya = self.l1*sin(ang[0])
     xb = self.l3*cos(ang[2])+xa
-    yb = self.l3*sin(ang[3])+ya
+    yb = self.l3*sin(ang[2])+ya
     
     x = [-self.l7, xa]
     y = [0,ya]
@@ -95,7 +95,7 @@ class Arm( object ):
     ax.plot(x,y,z)
     x = [xc,xe]
     y= [yc,ye]
-    
+    ax.plot(x,y,z)
     
     
 def main():
