@@ -63,6 +63,7 @@ class Arm( object ):
     delta = atan2(yb,xb+self.l7)
     print("delta = %f" % degrees(delta))
     theta1 = gamma+delta
+    
     print("theta1= %f" % degrees(theta1))
     ang[0] = theta1
     
@@ -71,6 +72,7 @@ class Arm( object ):
     return ang
     
   def plot3D(self,ang):
+    global ax
     xc = self.l2*cos(ang[1]) + self.l6
     yc = self.l2*sin(ang[1])
     xe = self.l5*cos(ang[3])+xc
@@ -83,34 +85,39 @@ class Arm( object ):
     x = [-self.l7, xa]
     y = [0,ya]
     z = [0,0]
-    ax.plot(x,y,z)
+    ax.plot(x,y,z,label='l1')
     x = [xa, xb]
     y = [ya, yb]
-    ax.plot(x,y,z)
+    ax.plot(x,y,z,label='l3')
     x = [xb,xc]
     y = [yb,yc]
-    ax.plot(x,y,z)
+    ax.plot(x,y,z,label='l4')
     x = [self.l6, xc]
     y = [0,yc]
-    ax.plot(x,y,z)
+    ax.plot(x,y,z,label='l2')
     x = [xc,xe]
     y= [yc,ye]
-    ax.plot(x,y,z)
+    ax.plot(x,y,z,label='l5')
+    
     
     
 def main():
   global fig, ax,x,y,z
-  fig = gcf()
+  ax = plt.gca()
+  fig = plt.gcf()
   ax = fig.gca(projection='3d')
   
   
   a = Arm()
   
-  x = 30
-  y = 5
+  x = 40
+  y = 20
   
   ang = a.angFromEnd(x,y)
   a.plot3D(ang)
+  plt.draw()
+  
+  plt.show()
   print(ang)
   
   
