@@ -64,6 +64,9 @@ class Arm( object ):
     print("delta = %f" % degrees(delta))
     theta1 = gamma+delta
     
+    if (theta1<(pi/2)):
+      theta1 = (pi/2-theta1) + pi/2
+    
     print("theta1= %f" % degrees(theta1))
     ang[0] = theta1
     
@@ -103,8 +106,8 @@ class Arm( object ):
     
 def main():
   global fig, ax,x,y,z
-  ax = plt.gca()
-  fig = plt.gcf()
+  
+  fig = gcf()
   ax = fig.gca(projection='3d')
   
   
@@ -116,9 +119,9 @@ def main():
   ang = a.angFromEnd(x,y)
   a.plot3D(ang)
   plt.draw()
-  
-  plt.show()
   print(ang)
+  show()
+  
   
   
 main()
