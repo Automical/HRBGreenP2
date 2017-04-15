@@ -23,242 +23,151 @@ filename = 'h.txt'
 #-----------------------------------------------------------------------------------------------
 #Given Kinematics Code
 
-def seToSE( x ):
-  """
-  Convert a twist (a rigid velocity, element of se(3)) to a rigid
-  motion (an element of SE(3))
-  
-  INPUT:
-    x -- 6 sequence
-  OUTPUT:
-    result -- 4 x 4  
 
-  """
-  x = asarray(x,dtype=float)
-  if x.shape != (6,):
-    raise ValueError("shape must be (6,); got %s" % str(x.shape))
-  #
-  return expM(screw(x))
-
-def screw( v ):
-  """
-  Convert a 6-vector to a screw matrix 
-  
-  The function is vectorized, such that:
-  INPUT:
-    v -- N... x 6 -- input vectors
-  OUTPUT:
-    N... x 4 x 4  
-  """
-  v = asarray(v)
-  z = zeros_like(v[0,...])
-  return array([
-      [ z, -v[...,5], v[...,4], v[...,0] ],
-      [ v[...,5],  z,-v[...,3], v[...,1] ],
-      [-v[...,4],  v[...,3], z, v[...,2] ],
-      [ z,         z,        z, z] ])
-
-def unscrew( S ):
-  """
-  Convert a screw matrix to a 6-vector
-  
-  The function is vectorized, such that:
-  INPUT:
-    S -- N... x 4 x 4 -- input screws
-  OUTPUT:
-    N... x 6
-  
-  This is the "safe" function -- it tests for screwness first.
-  Use unscrew_UNSAFE(S) to skip this check
-  """
-  S = asarray(S)
-  assert allclose(S[...,:3,:3].transpose(0,1),-S[...,:3,:3]),"S[...,:3,:3] is skew"
-  assert allclose(S[...,3,:],0),"Bottom row is 0"
-  return unscrew_UNSAFE(S)
-
-def jacobian_cdas( func, scl, lint=0.8, tol=1e-12, eps = 1e-30, withScl = False ):
-  """Compute Jacobian of a function based on auto-scaled central differences.
-  
-  INPUTS:
-    func -- callable -- K-vector valued function of a D-dimensional vector
-    scl -- D -- vector of maximal scales allowed for central differences
-    lint -- float -- linearity threshold, in range 0 to 1. 0 disables
-         auto-scaling; 1 requires completely linear behavior from func
-    tol -- float -- minimal step allowed
-    eps -- float -- infinitesimal; must be much smaller than smallest change in
-         func over a change of tol in the domain.
-    withScl -- bool -- return scales together with Jacobian
-  
-  OUTPUTS: jacobian function 
-    jFun: x --> J (for withScale=False)
-    jFun: x --> J,s (for withScale=True)
-    
-    x -- D -- input point
-    J -- K x D -- Jacobian of func at x
-    s -- D -- scales at which Jacobian holds around x
-  """
-  scl = abs(asarray(scl).flatten())
-  N = len(scl)  
-  lint = abs(lint)
-  def centDiffJacAutoScl( arg ):
-    """
-    Algorithm: use the value of the function at the center point
-      to test linearity of the function. Linearity is tested by 
-      taking dy+ and dy- for each dx, and ensuring that they
-      satisfy lint<|dy+|/|dy-|<1/lint
-    """
-    x0 = asarray(arg).flatten()    
-    y0 = func(x0)
-    s = scl.copy()
-    #print "Jac at ",x0
-    idx = slice(None)
-    dyp = empty((len(s),len(y0)),x0.dtype)
-    dyn = empty_like(dyp)
-    while True:
-      #print "Jac iter ",s
-      d0 = diag(s)
-      dyp[idx,:] = [ func(x0+dx)-y0 for dx in d0[idx,:] ]
-      dypc = dyp.conj()
-      dyn[idx,:] = [ func(x0-dx)-y0 for dx in d0[idx,:] ]
-      dync = dyn.conj()      
-      dp = sum(dyp * dypc,axis=1)
-      dn = sum(dyn * dync,axis=1)
-      nul = (dp == 0) | (dn == 0)
-      if any(nul):
-        s[nul] *= 1.5
-        continue
-      rat = dp/(dn+eps)
-      nl = ((rat<lint) | (rat>(1.0/lint)))
-      # If no linearity violations found --> done
-      if ~any(nl):
-        break
-      # otherwise -- decrease steps
-      idx, = nl.flatten().nonzero()
-      s[idx] *= 0.75
-      # Don't allow steps smaller than tol
-      s[idx[s[idx]<tol]] = tol
-      if all(s[idx]<tol):
-        break
-    res = ((dyp-dyn)/(2*s[:,newaxis])).T
-    if withScl:
-      return res, s
-    return res
-  return centDiffJacAutoScl 
 
 #-----------------------------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------------------------
 #Arm Representation CLass
 class Arm( object ):
-  """
-  class Arm
-  
-  Represents a series manipulator made of several segments.
-  Each segment is graphically represented by a wireframe model
-  """
+
   def __init__(self):
-    # link lengths
-    self.ll = asarray([20,20,20])
-    d = 0.2
-
-    self.geom = [( asarray([[0,0,0,1]]) ).T ]
-    #
-    # Build twist matrices 
-    # Build wireframe of all segments in the world coordinates
-    #
-    tw = []
-    LL = 0
-    
-    orientations = [[0,0,1],[0,1,0],[0,1,0]]
-    counter = 0
-    for n,ll in enumerate(self.ll):
-      # Scale the geometry to the specifies link length (ll)
-      # Shift it to the correct location (LL, sum of the ll values)
-      self.geom.append([( asarray([[0,0,LL,1]]) ).T ])
-
-      # Compute the twist for this segment; 
-      # twists alternate between the z and y axes
-      w = orientations[counter]
-      # Velocity induced at the origin
-      v = -cross(w,[0,0,LL])
-      # Collect the twists
-      tw.append( concatenate([v,w],0) )
-      # Accumulate the distance along the arm
-      LL += ll
-
-      counter = counter + 1
-    # Build an array of collected twists
-    self.tw = asarray(tw)
-    self.tool = asarray([0,0,LL,1]).T
+    # link lengths in cm
+    self.l1 = 28
+    self.l2 = 35
+    self.l3 = 20
+    self.l4 = 15
+    self.l5 = 35
+    self.l6 = 10
+    self.l7 = 10
+    self.l8 = 5
     
     
-    # overwrite method with jacobian function
-    self.getToolJac = jacobian_cdas( 
-      self.getTool, ones(self.tw.shape[0])*0.05 
-    )
+  def getTool(self,ang):
+    rc = self.l2*cos(ang[1]) + self.l6
+    zc = self.l2*sin(ang[1])
+    re = self.l5*cos(ang[3])+rc
+    ze = self.l5*sin(ang[3])+zc
   
-  def at( self, ang ):
-    """
-    Compute the rigid transformations for a multi-segment arm
-    at the specified angles
-    """
-    ang = asarray(ang)[:,newaxis]
-    tw = ang * self.tw
     
-    A = [identity(4)]
-    for twi in tw:
-      M = seToSE(twi)
-      A.append(dot(A[-1],M))
-    return A
-    
-  def getTool( self, ang ):
-    """
-    Get "tool tip" position in world coordinates
-    """
-    # Get the rigid transformation for the last segment of the arm
-    M = self.at(ang)[-1]
-    return dot(M, self.tool)
   
-  def getToolJac( self, ang ):
-    """
-    Get "tool tip" Jacobian by numerical approximation
+    toolX = re*cos(ang[4])
+    toolY = re*sin(ang[4])
     
-    NOTE: implementation is a placeholder. This method is overwritten
-    dynamically by __init__() to point to a jacobian_cdas() function
-    """
-    raise RuntimeError("uninitialized method called")
+    toolZ = ze
     
-  def plot3D( self, ang ):
+    return asarray([[toolX],[toolY],[toolZ]])
+  
+  def angFromEnd(self,x,y,z):
+    ang = [90,90,90,90,90];
+    
+    r = dist2(0,0,x,y)
+    
+    theta5 = atan2(y,x)
+    ang[4]=theta5
+    x=r
+    
+    d1 = dist2(self.l6,0,x,z)
+    print("d1 = %f" % d1)
+    beta = acos((self.l2**2+d1**2-self.l5**2)/(2*self.l2*d1))
+    print("beta = %f" % degrees(beta))
+    alpha = atan2(z,x-self.l6)
+    print("alpha = %f" % degrees(alpha))
+    theta2 = alpha + beta;
+    print("theta2 = %f" % degrees(theta2))
+
+    
+    ang[1] = theta2
+    
+    xc = self.l2*cos(theta2) + self.l6
+    zc = self.l2*sin(theta2)
+    
+    print("xc = %f" % xc)
+    print("zc = %f" % zc)
+    
+    theta4 = -atan2(zc-z,x-xc)
+    ang[3]=theta4;
+    
+
+    print("theta4 = %f" % degrees(theta4))
+    xb = xc - self.l4*cos(theta4)
+    zb = zc - self.l4*sin(theta4)
+
+    print("xb = %f" % xb)
+    print("zb = %f" % zb)
+    d2 = dist2(-self.l7,0,xb,zb)
+    print("d2 = %f" % d2)
+    
+    
+    
+    gamma = acos((self.l1**2+d2**2-self.l3**2)/(2*self.l1*d2))
+    print("gamma = %f" % degrees(gamma))
+    delta = atan2(zb,xb-(-self.l7))
+    print("delta = %f" % degrees(delta))
+    theta1 = gamma+delta
+    
+    if (theta1<(pi/2)):
+      theta1 = (pi/2-theta1) + pi/2
+    
+    print("theta1= %f" % degrees(theta1))
+    ang[0] = theta1
+    
+    xa = self.l1*cos(theta1) - self.l7
+    za = self.l1*sin(theta1)
+    
+    theta3 = atan2(zb-za,xb-xa)
+    print("theta3= %f" % degrees(theta3))
+
+    ang[2] = theta3
+    
+    
+    return ang
+  
+  def plot3D(self,ang):
     global ax
-    """
-    Plot arm in 3 views
-    """
-    x = []
-    y = []
-    z = []
-    A = self.at(ang)
-    for a,g in zip(A, self.geom):
-      ng = dot(a,g)
-      x.append(float(ng[0]))
-      y.append(float(ng[1]))
-      z.append(float(ng[2]))
-    tp = self.getTool(ang)
-    x.append(float(tp[0]))
-    y.append(float(tp[1]))
-    z.append(float(tp[2]))
-    ax.plot( x, y, z,  zdir='z' )
-    ax.plot( x, y, z, 'hk', zdir='z' )
-    ax.set_xlim(-30,30)
-    ax.set_xlabel('x')
-    ax.set_ylim(-30,30)
-    ax.set_ylabel('y')
-    ax.set_zlim(-30,30)
-    ax.set_zlabel('z')
-    tx = asarray([0,(tp[0])])
-    ty = asarray([0,(tp[1])])
-    tz = asarray([0,(tp[2])])
-    ax.plot(tx,ty,tz,'hr',zdir='z')
+    rc = self.l2*cos(ang[1]) + self.l6
+    zc = self.l2*sin(ang[1])
+    re = self.l5*cos(ang[3])+rc
+    ze = self.l5*sin(ang[3])+zc
+    ra = self.l1*cos(ang[0]) - self.l7
+    za = self.l1*sin(ang[0])
+    rb = self.l3*cos(ang[2])+ra
+    zb = self.l3*sin(ang[2])+za
     
+    xc = rc*cos(ang[4])
+    yc = rc*sin(ang[4])
+    
+    xe = re*cos(ang[4])
+    ye = re*sin(ang[4])
+    
+    xa = ra*cos(ang[4])
+    ya = ra*sin(ang[4])
+    
+    xb = rb*cos(ang[4])
+    yb = rb*sin(ang[4])
+    
+    
+    x = [-self.l7*cos(ang[4]), xa]
+    z = [0,za]
+    y = [-self.l7*sin(ang[4]), ya]
+    ax.plot(x,y,z,label='l1')
+    x = [xa, xb]
+    y = [ya,yb]
+    z = [za, zb]
+    ax.plot(x,y,z,label='l3')
+    x = [xb,xc]
+    y = [yb,yc]
+    z = [zb,zc]
+    ax.plot(x,y,z,label='l4')
+    x = [self.l6*cos(ang[4]), xc]
+    y = [self.l6*sin(ang[4]), yc]
+    z = [0,zc]
+    ax.plot(x,y,z,label='l2')
+    x = [xc,xe]
+    y = [yc,ye]
+    z = [zc,ze]
+    ax.plot(x,y,z,label='l5')
+  
 #-----------------------------------------------------------------------------------------------
 #Representation of paper in 3D space
 #Conversions from 2D paper space to 3D arm space
@@ -310,6 +219,7 @@ class Controller(object):
   
   #return change in angle for given arm position, angle, and endpoint
   #todo: dynamic dt selection
+  '''
   def generateAngleDelta(self,arm,ang,end):
     tool = arm.getTool(ang)
     Jt = a.getToolJac(ang)
@@ -340,11 +250,41 @@ class Controller(object):
     da = dot(pinv(Jt)[:,:len(d)],d)
     
     return da
-    
-  def dist(tool,end):
-    return sqrt((tool[0]-end[0])**2+(tool[1]-end[1])**2+(tool[2]-end[2])**2)
-
+    '''
+  def generateToolDelta(arm,ang,end):
+    tool = a.getTool(ang)
+    diff = end-tool
+    if (abs(diff[0])>.1):
+      if (diff[0])>0:
+        tx = .1
+      else:
+        tx=-.1
+    else:
+      tx = 0
+    if (abs(diff[1])>.1):
+      if (diff[1])>0:
+        ty = .1
+      else:
+        ty=-.1
+    else:
+      ty = 0
+      
+    if (abs(diff[2])>.1):
+      if (diff[2])>0:
+        tz = .1
+      else:
+        tz=-.1
+    else:
+      tz = 0
   
+    return asarray([[tx],[ty],[tz]])
+  
+def dist(tool,end):
+  return sqrt((tool[0]-end[0])**2+(tool[1]-end[1])**2+(tool[2]-end[2])**2)
+
+def dist2(x1,y1,x2,y2):
+  return sqrt((x2-x1)**2+(y2-y1)**2);
+
 #-----------------------------------------------------------------------------------------------
   
   
@@ -363,15 +303,23 @@ class GotoPoint(Plan):
     self.end = end
     
   def behavior(self):
-    dist = self.control.dist(self.arm.getTool(self.ang),self.end)
+    dist_to = dist(self.arm.getTool(self.ang),self.end)
     
-    while(dist > dist_thresh):
-      dist = self.control.dist(self.arm.getTool(self.ang),self.end)
-      da = self.control.generateAngleDelta(self.arm,self.ang,self.end)
-      self.ang = self.ang + da
+    while(dist_to > dist_thresh):
+      dist_to = dist(self.arm.getTool(self.ang),self.end)
+      #da = self.control.generateAngleDelta(self.arm,self.ang,self.end)
+      #self.ang = self.ang + da
+      dpos = self.control.generateToolDelta(self.arm,self.ang,self.end)
+      tool  = self.arm.getTool(self.ang)
+      tool2 = tool+dpos
+      self.ang = self.arm.angFromEnd(tool2[0],tool2[1],tool2[2])
       
-      for i in range(1,num_motors_arm):
-        self.app.ser[i].set_pos(self.ang[i])
+      self.app.ser[0] = self.ang[0]
+      self.app.ser[1] = self.ang[1]
+      self.app.ser[2] = self.ang[4]
+      
+      #for i in range(1,num_motors_arm):
+      #  self.app.ser[i].set_pos(self.ang[i])
         
       yield self.forDuration(.1)
 
@@ -408,7 +356,7 @@ def getToolLoc(arm,ser):
 #Robot servo angles may not 1-1 correspond to arm frame angles
 def robAngToWorldAng(ang):
      
-   return ang/1000.0;
+ return ang/1000.0;
   
 def worldAngtoRobAng(ang):
   
@@ -439,12 +387,18 @@ class DrawPlan( Plan ):
 class GreenApp( JoyApp ):
   def __init__(self,*arg,**kw):
     JoyApp.__init__( self, confPath="$/cfg/JoyApp.yml", *arg, **kw) 
-    self.ang = [0,pi/4,pi/4]
+
+    #self.ang = [0,pi/4,pi/4]
     self.ser_t = self.robot.at
     #Replace with real motor value
     
     self.arm = Arm()
+    xi = 30
+    yi = 0
+    zi = 35
+  
     
+    self.ang = self.a.angFromEnd(xi,yi,zi)
     self.paper = Paper()
     #Order in the direction of joints
     #self.ser = [self.ser_t.Nx45,self.ser_t.Nx23,self.ser_t.Nx4E];
