@@ -95,20 +95,28 @@ class Arm( object ):
     
     
   def getTool(self,ang):
-    xc = self.l2*cos(ang[1]) + self.l6
-    yc = self.l2*sin(ang[1])
-    xe = self.l5*cos(ang[3])+xc
-    ye = self.l5*sin(ang[3])+yc
+    rc = self.l2*cos(ang[1]) + self.l6
+    zc = self.l2*sin(ang[1])
+    re = self.l5*cos(ang[3])+rc
+    ze = self.l5*sin(ang[3])+zc
   
-    toolX = xe
-    toolZ = ye
-    toolY = 0;
+    
+  
+    toolX = re*cos(ang[4])
+    toolY = re*sin(ang[4])
+    
+    toolZ = ze
     
     return asarray([[toolX],[toolY],[toolZ]])
   
   def angFromEnd(self,x,y,z):
     ang = [90,90,90,90,90];
     
+    r = dist2(0,0,x,y)
+    
+    theta5 = atan2(y,x)
+    ang[4]=theta5
+    x=r
     
     d1 = dist2(self.l6,0,x,z)
     print("d1 = %f" % d1)
@@ -123,30 +131,30 @@ class Arm( object ):
     ang[1] = theta2
     
     xc = self.l2*cos(theta2) + self.l6
-    yc = self.l2*sin(theta2)
+    zc = self.l2*sin(theta2)
     
     print("xc = %f" % xc)
-    print("yc = %f" % yc)
+    print("zc = %f" % zc)
     
-    theta4 = -atan2(yc-z,x-xc)
+    theta4 = -atan2(zc-z,x-xc)
     ang[3]=theta4;
     
 
     print("theta4 = %f" % degrees(theta4))
     xb = xc - self.l4*cos(theta4)
-    yb = yc - self.l4*sin(theta4)
+    zb = zc - self.l4*sin(theta4)
     #xb = self.l6 + self.l2*cos(theta2) + self.l4*cos(theta4)
     #yb = self.l2*sin(theta2) + self.l4*sin(theta4)
     print("xb = %f" % xb)
-    print("yb = %f" % yb)
-    d2 = dist2(-self.l7,0,xb,yb)
+    print("zb = %f" % zb)
+    d2 = dist2(-self.l7,0,xb,zb)
     print("d2 = %f" % d2)
     
     
     
     gamma = acos((self.l1**2+d2**2-self.l3**2)/(2*self.l1*d2))
     print("gamma = %f" % degrees(gamma))
-    delta = atan2(yb,xb-(-self.l7))
+    delta = atan2(zb,xb-(-self.l7))
     print("delta = %f" % degrees(delta))
     theta1 = gamma+delta
     
@@ -157,9 +165,9 @@ class Arm( object ):
     ang[0] = theta1
     
     xa = self.l1*cos(theta1) - self.l7
-    ya = self.l1*sin(theta1)
+    za = self.l1*sin(theta1)
     
-    theta3 = atan2(yb-ya,xb-xa)
+    theta3 = atan2(zb-za,xb-xa)
     print("theta3= %f" % degrees(theta3))
     
     #theta3 = acos((self.l1**2+self.l3**2-d2**2)/(2*self.l1*self.l3))
@@ -176,31 +184,49 @@ class Arm( object ):
     
   def plot3D(self,ang):
     global ax
-    xc = self.l2*cos(ang[1]) + self.l6
-    yc = self.l2*sin(ang[1])
-    xe = self.l5*cos(ang[3])+xc
-    ye = self.l5*sin(ang[3])+yc
-    xa = self.l1*cos(ang[0]) - self.l7
-    ya = self.l1*sin(ang[0])
-    xb = self.l3*cos(ang[2])+xa
-    yb = self.l3*sin(ang[2])+ya
+    rc = self.l2*cos(ang[1]) + self.l6
+    zc = self.l2*sin(ang[1])
+    re = self.l5*cos(ang[3])+rc
+    ze = self.l5*sin(ang[3])+zc
+    ra = self.l1*cos(ang[0]) - self.l7
+    za = self.l1*sin(ang[0])
+    rb = self.l3*cos(ang[2])+ra
+    zb = self.l3*sin(ang[2])+za
     
-    x = [-self.l7, xa]
-    z = [0,ya]
-    y = [0,0]
+    xc = rc*cos(ang[4])
+    yc = rc*sin(ang[4])
+    
+    xe = re*cos(ang[4])
+    ye = re*sin(ang[4])
+    
+    xa = ra*cos(ang[4])
+    ya = ra*sin(ang[4])
+    
+    xb = rb*cos(ang[4])
+    yb = rb*sin(ang[4])
+    
+    
+    x = [-self.l7*cos(ang[4]), xa]
+    z = [0,za]
+    y = [-self.l7*sin(ang[4]), ya]
     ax.plot(x,y,z,label='l1')
     x = [xa, xb]
-    z = [ya, yb]
+    y = [ya,yb]
+    z = [za, zb]
     ax.plot(x,y,z,label='l3')
     x = [xb,xc]
-    z = [yb,yc]
+    y = [yb,yc]
+    z = [zb,zc]
     ax.plot(x,y,z,label='l4')
-    x = [self.l6, xc]
-    z = [0,yc]
+    x = [self.l6*cos(ang[4]), xc]
+    y = [self.l6*sin(ang[4]), yc]
+    z = [0,zc]
     ax.plot(x,y,z,label='l2')
     x = [xc,xe]
-    z = [yc,ye]
+    y = [yc,ye]
+    z = [zc,ze]
     ax.plot(x,y,z,label='l5')
+    
     
     #print("l1 = %f" % dist2(-self.l7,0,xa,ya))
     #print("l2 = %f" % dist2(self.l6,0,xc,yc))
@@ -403,7 +429,7 @@ def main():
       #a,ang = goToPoint(a,ang,d, tip_points, True)
       #end = asarray([[xend],[yend],[zend]])
       end = asarray([[d[0]],[d[1]],[d[2]]])
-      goToPoint(a,ang,end,tip_points,store_points)
+      a,ang = goToPoint(a,ang,end,tip_points,store_points)
       #Jt = a.getToolJac(ang)
       #ang = ang + dot(pinv(Jt)[:,:len(d)],d)
     elif type(d) == tuple:
