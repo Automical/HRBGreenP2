@@ -48,19 +48,27 @@ class Arm( object ):
     theta4 = -atan2(yc-y,x-xc)
     ang[3]=theta4;
     
-    #theta4 = acos((x-self.l2*cos(theta2))/(self.l5))
+    
+
+    
+    
+    
+
     print("theta4 = %f" % degrees(theta4))
-    #xb = x-(self.l4+self.l5)*cos(theta4)
-    #yb = y-(self.l4+self.l5)*sin(theta4)
-    xb = self.l6 + self.l2*cos(theta2) + self.l4*cos(theta4)
-    yb = self.l2*sin(theta2) + self.l4*sin(theta4)
+    xb = xc - self.l4*cos(theta4)
+    yb = yc - self.l4*sin(theta4)
+    #xb = self.l6 + self.l2*cos(theta2) + self.l4*cos(theta4)
+    #yb = self.l2*sin(theta2) + self.l4*sin(theta4)
     print("xb = %f" % xb)
     print("yb = %f" % yb)
     d2 = dist(-self.l7,0,xb,yb)
     print("d2 = %f" % d2)
+    
+    
+    
     gamma = acos((self.l1**2+d2**2-self.l3**2)/(2*self.l1*d2))
     print("gamma = %f" % degrees(gamma))
-    delta = atan2(yb,xb+self.l7)
+    delta = atan2(yb,xb-(-self.l7))
     print("delta = %f" % degrees(delta))
     theta1 = gamma+delta
     
@@ -70,10 +78,22 @@ class Arm( object ):
     print("theta1= %f" % degrees(theta1))
     ang[0] = theta1
     
-    theta3 = acos((self.l1**2+self.l3**2-d2**2)/(2*self.l1*self.l3))
-    if (theta3>(pi/2)):
-      theta3 = (theta3-pi/2)
+    xa = self.l1*cos(theta1) - self.l7
+    ya = self.l1*sin(theta1)
+    
+    theta3 = atan2(yb-ya,xb-xa)
+    print("theta3= %f" % degrees(theta3))
+    
+    #theta3 = acos((self.l1**2+self.l3**2-d2**2)/(2*self.l1*self.l3))
+    
+    
+    
+    #if (theta3>(pi/2)):
+    #  theta3 = (theta3-pi/2)
+    #print("theta3= %f" % degrees(theta3))
     ang[2] = theta3
+    
+    
     return ang
     
   def plot3D(self,ang):
@@ -82,7 +102,7 @@ class Arm( object ):
     yc = self.l2*sin(ang[1])
     xe = self.l5*cos(ang[3])+xc
     ye = self.l5*sin(ang[3])+yc
-    xa = -self.l7+self.l1*cos(ang[0])
+    xa = self.l1*cos(ang[0]) - self.l7
     ya = self.l1*sin(ang[0])
     xb = self.l3*cos(ang[2])+xa
     yb = self.l3*sin(ang[2])+ya
