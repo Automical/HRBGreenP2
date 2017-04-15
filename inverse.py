@@ -71,6 +71,8 @@ class Arm( object ):
     ang[0] = theta1
     
     theta3 = acos((self.l1**2+self.l3**2-d2**2)/(2*self.l1*self.l3))
+    if (theta3>(pi/2)):
+      theta3 = (theta3-pi/2)
     ang[2] = theta3
     return ang
     
@@ -102,6 +104,11 @@ class Arm( object ):
     y= [yc,ye]
     ax.plot(x,y,z,label='l5')
     
+    print("l1 = %f" % dist(-self.l7,0,xa,ya))
+    print("l2 = %f" % dist(self.l6,0,xc,yc))
+    print("l3 = %f" % dist(xa,ya,xb,yb))
+    print("l4 = %f" % dist(xb,yb,xc,yc))
+    print("l5 = %f" % dist(xc,yc,xe,ye))
     
     
 def main():
