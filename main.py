@@ -15,7 +15,7 @@ from math import *
 #-----------------------------------------------------------------------------------------------
 #Global Constants
 num_motors = 3
-num_arm_motors = 3
+num_motors_arm = 3
 dist_thresh = 1
 dt_max = .25
 filename = 'h.txt'
@@ -317,7 +317,7 @@ class GoToPoint(Plan):
       tool2 = tool+dpos
       self.ang = self.arm.angFromEnd(tool2[0],tool2[1],tool2[2])
       
-      print("Setting1:",self.ang[0]," Setting2:",self.ang[1]," SEtting3:",self.ang[4])
+      print("Setting0:",self.ang[0]," Setting1:",self.ang[1]," Setting4:",self.ang[4])
       self.app.ser[0].set_pos(worldAngtoRobAng(degrees(self.ang[0])))
       self.app.ser[1].set_pos(worldAngtoRobAng(degrees(self.ang[1])))
       self.app.ser[2].set_pos(worldAngtoRobAng(degrees(self.ang[4])))
@@ -341,17 +341,20 @@ def calcRigidTransform(p1,p2,p3,p4,r1,r2,r3,r4):
   M = np.matrix([[1,0,0],[0,1,0],[0,0,np.linalg.det(U)*np.linalg.det(V)]])
   R = np.matmul(U,np.matmul(M,V))
   
-  Ro = np.zeros(4,4)
+  Ro = np.zeros((4,4))
   Ro[0:3,0:3] = R
   Ro[0:3,3:4] = np.matrix([[p1[0]],[p1[1]],[p1[2]],[1]])
   return Ro
   
 def getToolLoc(arm,ser):
-  ang = np.zeros(1,num_motors_arm)
+  ang = np.zeros(num_motors_arm)
   for i in range(1,num_motors_arm):
     ang[i] = ser[i].get_pos()
    
-  ang = robAngToWorldAng(ang)
+
+  for i in range(1,len(ang)):
+    ang[i] = radians(robAngToWorldAng(ang[i]))
+    
   
   return arm.getTool(ang)
        
@@ -408,7 +411,10 @@ class GreenApp( JoyApp ):
     #Order in the direction of joints
     for x in self.ser_t:
       print(x)
-    self.ser = [self.ser_t.K21,self.ser_t.Nx17,self.ser_t.Nx4D];
+    self.ser = [self.ser_t.K21,self.ser_t.Nx17,self.ser_t.Nx21];
+    self.ang[0] = radians(robAngToWorldAng(self.ser_t.K21.get_pos()))
+    self.ang[1] = radians(robAngToWorldAng(self.ser_t.Nx17.get_pos()))
+    self.ang[4] = radians(robAngToWorldAng(self.ser_t.Nx21.get_pos()))
     #self.ser = [0,0,0];
     
     self.p1_d = np.matrix([[0],[0],[0]])
@@ -462,9 +468,12 @@ class GreenApp( JoyApp ):
         self.points_on = z;
       elif evt.key == K_k:
         if self.point_plan.isRunning() == False:
+          d = input("target as list")
           print("Going to some rando point!")
-          self.point_plan.setEnd(asarray([[35],[0],[35]]))
+          self.point_plan.setEnd(asarray(d))
           self.point_plan.start()
+        else:
+          print("Point plan already running")
       elif evt.key == K_l:
         if self.point_plan.isRunning() == False:
           print("Going to some rando point!")
