@@ -2,11 +2,13 @@
 #Imports
 from joy import *
 import numpy as np
+from numpy import asarray
 from scipy.linalg import expm as expM
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+#import matplotlib.pyplot as plt
+#from mpl_toolkits.mplot3d import Axes3D
 from time import sleep
 import ast
+from math import *
 #-----------------------------------------------------------------------------------------------
 
 
@@ -37,7 +39,7 @@ class Arm( object ):
     self.l2 = 35
     self.l3 = 20
     self.l4 = 15
-    self.l5 = 35
+    self.l5 = 47
     self.l6 = 10
     self.l7 = 10
     self.l8 = 5
@@ -68,13 +70,13 @@ class Arm( object ):
     x=r
     
     d1 = dist2(self.l6,0,x,z)
-    print("d1 = %f" % d1)
+    #print("d1 = %f" % d1)
     beta = acos((self.l2**2+d1**2-self.l5**2)/(2*self.l2*d1))
-    print("beta = %f" % degrees(beta))
+    #print("beta = %f" % degrees(beta))
     alpha = atan2(z,x-self.l6)
-    print("alpha = %f" % degrees(alpha))
+    #print("alpha = %f" % degrees(alpha))
     theta2 = alpha + beta;
-    print("theta2 = %f" % degrees(theta2))
+    #print("theta2 = %f" % degrees(theta2))
 
     
     ang[1] = theta2
@@ -82,47 +84,47 @@ class Arm( object ):
     xc = self.l2*cos(theta2) + self.l6
     zc = self.l2*sin(theta2)
     
-    print("xc = %f" % xc)
-    print("zc = %f" % zc)
+    #print("xc = %f" % xc)
+    #print("zc = %f" % zc)
     
     theta4 = -atan2(zc-z,x-xc)
     ang[3]=theta4;
     
 
-    print("theta4 = %f" % degrees(theta4))
+    #print("theta4 = %f" % degrees(theta4))
     xb = xc - self.l4*cos(theta4)
     zb = zc - self.l4*sin(theta4)
 
-    print("xb = %f" % xb)
-    print("zb = %f" % zb)
+    #print("xb = %f" % xb)
+    #print("zb = %f" % zb)
     d2 = dist2(-self.l7,0,xb,zb)
-    print("d2 = %f" % d2)
+    #print("d2 = %f" % d2)
     
     
     
     gamma = acos((self.l1**2+d2**2-self.l3**2)/(2*self.l1*d2))
-    print("gamma = %f" % degrees(gamma))
+    #print("gamma = %f" % degrees(gamma))
     delta = atan2(zb,xb-(-self.l7))
-    print("delta = %f" % degrees(delta))
+    #print("delta = %f" % degrees(delta))
     theta1 = gamma+delta
     
     if (theta1<(pi/2)):
       theta1 = (pi/2-theta1) + pi/2
     
-    print("theta1= %f" % degrees(theta1))
+    #print("theta1= %f" % degrees(theta1))
     ang[0] = theta1
     
     xa = self.l1*cos(theta1) - self.l7
     za = self.l1*sin(theta1)
     
     theta3 = atan2(zb-za,xb-xa)
-    print("theta3= %f" % degrees(theta3))
+    #print("theta3= %f" % degrees(theta3))
 
     ang[2] = theta3
     
     
     return ang
-  
+  """
   def plot3D(self,ang):
     global ax
     rc = self.l2*cos(ang[1]) + self.l6
@@ -167,7 +169,7 @@ class Arm( object ):
     y = [yc,ye]
     z = [zc,ze]
     ax.plot(x,y,z,label='l5')
-  
+  """
 #-----------------------------------------------------------------------------------------------
 #Representation of paper in 3D space
 #Conversions from 2D paper space to 3D arm space
@@ -251,8 +253,8 @@ class Controller(object):
     
     return da
     '''
-  def generateToolDelta(arm,ang,end):
-    tool = a.getTool(ang)
+  def generateToolDelta(self,arm,ang,end):
+    tool = arm.getTool(ang)
     diff = end-tool
     if (abs(diff[0])>.1):
       if (diff[0])>0:
@@ -290,7 +292,7 @@ def dist2(x1,y1,x2,y2):
   
 #-----------------------------------------------------------------------------------------------
 #Plan to drive robot arm to point in relative 3D space
-class GotoPoint(Plan):
+class GoToPoint(Plan):
   def __init__(self,app,*arg,**kw):
     Plan.__init__(self,app,*arg,**kw)
     self.app = app
@@ -301,6 +303,7 @@ class GotoPoint(Plan):
   
   def setEnd(self,end):
     self.end = end
+    print("Set target endpoint to:",self.end)
     
   def behavior(self):
     dist_to = dist(self.arm.getTool(self.ang),self.end)
@@ -314,9 +317,10 @@ class GotoPoint(Plan):
       tool2 = tool+dpos
       self.ang = self.arm.angFromEnd(tool2[0],tool2[1],tool2[2])
       
-      self.app.ser[0] = self.ang[0]
-      self.app.ser[1] = self.ang[1]
-      self.app.ser[2] = self.ang[4]
+      print("Setting1:",self.ang[0]," Setting2:",self.ang[1]," SEtting3:",self.ang[4])
+      self.app.ser[0].set_pos(worldAngtoRobAng(degrees(self.ang[0])))
+      self.app.ser[1].set_pos(worldAngtoRobAng(degrees(self.ang[1])))
+      self.app.ser[2].set_pos(worldAngtoRobAng(degrees(self.ang[4])))
       
       #for i in range(1,num_motors_arm):
       #  self.app.ser[i].set_pos(self.ang[i])
@@ -355,14 +359,15 @@ def getToolLoc(arm,ser):
    
 #Robot servo angles may not 1-1 correspond to arm frame angles
 def robAngToWorldAng(ang):
-     
- return ang/1000.0;
+  if ang == 0:
+    return 90
+  return -(ang/100.0) + 90
   
 def worldAngtoRobAng(ang):
   
-  return int(ang*1000)
+  return int((ang - 90)*-100)
 
-
+"""
 class DrawPlan( Plan ):
   def __init__(self,app,*arg,**kw):
     Plan.__init__(self,app,*arg,**kw)
@@ -380,7 +385,7 @@ class DrawPlan( Plan ):
     plt.pause(.0001)
     show()
     yield(self.forDuration(.1))
-    
+    """
 
 #-----------------------------------------------------------------------------------------------
 #App
@@ -398,11 +403,13 @@ class GreenApp( JoyApp ):
     zi = 35
   
     
-    self.ang = self.a.angFromEnd(xi,yi,zi)
+    self.ang = self.arm.angFromEnd(xi,yi,zi)
     self.paper = Paper()
     #Order in the direction of joints
-    #self.ser = [self.ser_t.Nx45,self.ser_t.Nx23,self.ser_t.Nx4E];
-    self.ser = [0,0,0];
+    for x in self.ser_t:
+      print(x)
+    self.ser = [self.ser_t.K21,self.ser_t.Nx17,self.ser_t.Nx4D];
+    #self.ser = [0,0,0];
     
     self.p1_d = np.matrix([[0],[0],[0]])
     self.p2_d = np.matrix([[20.32],[0],[0]])
@@ -423,8 +430,6 @@ class GreenApp( JoyApp ):
     print("start")
     
   def onEvent( self, evt ):
-    print("event")
-    
     if evt.type == KEYDOWN:
       if evt.key == K_UP:
         print("up")
@@ -455,6 +460,18 @@ class GreenApp( JoyApp ):
         l=l.replace(' ','')
         z=ast.literal_eval(l)
         self.points_on = z;
+      elif evt.key == K_k:
+        if self.point_plan.isRunning() == False:
+          print("Going to some rando point!")
+          self.point_plan.setEnd(asarray([[35],[0],[35]]))
+          self.point_plan.start()
+      elif evt.key == K_l:
+        if self.point_plan.isRunning() == False:
+          print("Going to some rando point!")
+          self.point_plan.setEnd(asarray([[35],[0],[40]]))
+          self.point_plan.start()
+      elif evt.key == K_ESCAPE:
+            self.stop()
         
 
 
