@@ -380,6 +380,24 @@ class GoToPoint(Plan):
         
       yield self.forDuration(.1)
 
+#-----------------------------------------------------------------------------------------------
+class DrawStrokes(Plan):
+  def __init_(self,app,*arg,**kw):
+    Plan.__init__(self,app,*arg,**kw)
+    self.app = app
+    self.point_plan = GoToPoint(self.app)
+    self.strokes = []
+
+  def setStrokes(self,s):
+    self.strokes = s
+
+  def behavior(self):
+    for s in self.strokes:
+      for p in s:
+        print("Going to",p)
+        self.point_plan.setEnd(self.paper.convertPoint(p[0],p[1]))
+        yield self.point_plan
+
       
 #-----------------------------------------------------------------------------------------------
 #Rigid Body Definition
@@ -490,6 +508,7 @@ class GreenApp( JoyApp ):
     self.points_off = [[],[]]
     
     self.point_plan = GoToPoint(self)
+    self.stroke_plan = DrawStrokes(self)
     
   def onStart( self ):
     print("start")
@@ -537,15 +556,7 @@ class GreenApp( JoyApp ):
         #pass
         print("Trying to draw points")
         #self.point_plan.stop()
-        for s in self.points_on:
-          print(s)
-          for p in s:
-            print("Going to",p)
-            self.point_plan.setEnd(self.paper.convertPoint(p[0],p[1]))
-            self.point_plan.start()
-            #while(self.point_plan.isRunning() == True):
-            #  print("blocking")
-            #  a = 1 + 1
+        self.stroke_plan.start()
       elif evt.key == K_ESCAPE:
         self.stop()
       elif evt.key==K_b:
