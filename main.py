@@ -92,8 +92,8 @@ class Arm( object ):
     r = xb + self.l5*cos(theta4)
     z = yb + self.l5*sin(theta4)
     
-    y = r*cos(theta5)
-    x = r*sin(theta5)
+    x = r*cos(theta5)
+    y = r*sin(theta5)
     
     tool = asarray([[x],[y],[z]])
     return tool
@@ -106,8 +106,8 @@ class Arm( object ):
   
     
   
-    toolY = re*cos(ang[4])
-    toolX = re*sin(ang[4])
+    toolX = re*cos(ang[4])
+    toolY = re*sin(ang[4])
     
     toolZ = ze
     
@@ -318,9 +318,9 @@ class Controller(object):
       tx = 0
     if (abs(diff[1])>.1):
       if (diff[1])>0:
-        ty = -.1
+        ty = .1
       else:
-        ty=.1
+        ty=-.1
     else:
       ty = 0
       
