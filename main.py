@@ -46,28 +46,28 @@ class Arm( object ):
     
     
   def getToolAng(self, theta1,theta2,theta5):
-    print("theta1,2,5",theta1,theta2,theta5)
+    #print("theta1,2,5",theta1,theta2,theta5)
 
     rc = self.l2*cos(theta2) + self.l6
     zc = self.l2*sin(theta2)
-    print("Rc,Zc",rc,zc)
+    #print("Rc,Zc",rc,zc)
     
     ra = self.l1*cos(theta1) - self.l7
     za = self.l1*sin(theta1)
-    print("Ra,Za",ra,za)
+    #print("Ra,Za",ra,za)
     
     xc = rc
     yc = zc
     
     xa = ra
     ya = za
-    print("Xa,Ya",xa,ya)
+    #print("Xa,Ya",xa,ya)
     
     d = dist2(xc,yc,xa,ya)
-    print("D:",d)
+    #print("D:",d)
 
     a = (self.l3**2-self.l4**2+d**2)/(2*d)
-    print("A:",a)
+    #print("A:",a)
     
     h = sqrt(self.l3**2-a**2)
     
@@ -92,8 +92,8 @@ class Arm( object ):
     r = xb + self.l5*cos(theta4)
     z = yb + self.l5*sin(theta4)
     
-    x = r*cos(theta5)
-    y = r*sin(theta5)
+    y = r*cos(theta5)
+    x = r*sin(theta5)
     
     tool = asarray([[x],[y],[z]])
     return tool
@@ -106,8 +106,8 @@ class Arm( object ):
   
     
   
-    toolX = re*cos(ang[4])
-    toolY = re*sin(ang[4])
+    toolY = re*cos(ang[4])
+    toolX = re*sin(ang[4])
     
     toolZ = ze
     
@@ -318,9 +318,9 @@ class Controller(object):
       tx = 0
     if (abs(diff[1])>.1):
       if (diff[1])>0:
-        ty = .1
+        ty = -.1
       else:
-        ty=-.1
+        ty=.1
     else:
       ty = 0
       
@@ -534,19 +534,22 @@ class GreenApp( JoyApp ):
         else:
           print("Point plan already running")
       elif evt.key == K_l:
-        pass
+        #pass
         print("Trying to draw points")
-        self.point_plan.stop()
+        #self.point_plan.stop()
         for s in self.points_on:
+          print(s)
           for p in s:
             print("Going to",p)
             self.point_plan.setEnd(self.paper.convertPoint(p[0],p[1]))
             self.point_plan.start()
-            while(self.point_plan.isRunning() == True):
-              a = 1 + 1
+            #while(self.point_plan.isRunning() == True):
+            #  print("blocking")
+            #  a = 1 + 1
       elif evt.key == K_ESCAPE:
-            self.stop()
-        
+        self.stop()
+      elif evt.key==K_b:
+        print(getToolLoc(self.arm,self.ser))
 
 
 
