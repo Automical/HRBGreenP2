@@ -2,6 +2,9 @@ import numpy as np
 #4x4 Rigid body transformation for paper representation
 PAPER = np.matrix([[ 1/1.414, 0, -1/1.414, 100.],[0., 1,.0, -100.],[1/1.414,0.,1/1.414,0.],[0.,0.,0.,1.]])
 
+PAPER = np.matrix([[  0.21295503,   0.82962318,  -0.51611581,  34.24058021],[ -0.67166225,   0.50793011,   0.53932998, -16.47151874],[  0.70959141,   0.23180248,   0.66539285,  14.14060594],[  0.,           0.,           0. ,          1.        ]])
+
+
 #workspace corners
 #WORKSPACE = [[0,0,0],[30.48,0,0],[30.48,30.48,0],[0,30.48,0],[0,0,0],[0,0,30.48],[30.48,0,30.48],[30.48,0,0],[0,0,0],[0,0,30.48],[0,30.48,30.48],[0,30.48,0],[0,0,0]
 
@@ -368,7 +371,7 @@ def main():
   
   paper = PAPER  #4x4 rigid body transformation for paper position
   rotation = paper[0:3,0:3]
-  translation = paper[0:3,3:4]/10.0
+  translation = paper[0:3,3:4]
   print(translation)
   point1 = rotation * np.matrix([[0],[0],[0]]) + translation
   point2 = rotation * np.matrix([[20.32],[0],[0]]) + translation

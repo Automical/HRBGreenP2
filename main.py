@@ -246,7 +246,7 @@ class Paper(object):
   #t - rotation/translation in homogenous coordinates
   def update_paper(self,t):
     rotate = t[0:3,0:3]
-    translate = t[0:3,3:4]/10.0
+    translate = t[0:3,3:4]
     
     self.p1 = rotate*self.p1_d + translate
     self.p2 = rotate*self.p2_d + translate
@@ -382,20 +382,23 @@ class GoToPoint(Plan):
 
 #-----------------------------------------------------------------------------------------------
 class DrawStrokes(Plan):
-  def __init_(self,app,*arg,**kw):
+  def __init__(self,app,*arg,**kw):
     Plan.__init__(self,app,*arg,**kw)
     self.app = app
     self.point_plan = GoToPoint(self.app)
-    self.strokes = []
+    self.strokes = [[]]
 
   def setStrokes(self,s):
     self.strokes = s
 
   def behavior(self):
+    print(self.strokes)
+    print(self.point_plan)
+    
     for s in self.strokes:
       for p in s:
         print("Going to",p)
-        self.point_plan.setEnd(self.paper.convertPoint(p[0],p[1]))
+        self.point_plan.setEnd(self.app.paper.convertPoint(p[0],p[1]))
         yield self.point_plan
 
       
@@ -415,7 +418,11 @@ def calcRigidTransform(p1,p2,p3,p4,r1,r2,r3,r4):
   Ro = np.zeros((4,4))
   Ro[0:3,0:3] = R
   Ro[0:4,3:4] = np.matrix([[p1[0]],[p1[1]],[p1[2]],[1]])
+  
+  #print("Ro",Ro,"p1",p1,"p1r",np.matmul(Ro,p1),"p2",p2,"p2r",np.matmul(Ro,p2),"p3",p3,"p3r",np.matmul(Ro,p3),"p4",p4,"p4r",np.matmul(Ro,p4))
+  
   print(Ro)
+  
   return Ro
   
 def getToolLoc(arm,ser):
@@ -544,6 +551,7 @@ class GreenApp( JoyApp ):
         l=l.replace(' ','')
         z=ast.literal_eval(l)
         self.points_on = z;
+        self.stroke_plan.setStrokes(self.points_on)
       elif evt.key == K_k:
         if self.point_plan.isRunning() == False:
           d = input("target as list")
