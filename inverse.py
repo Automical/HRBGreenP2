@@ -88,7 +88,7 @@ class Arm( object ):
     self.l2 = 35
     self.l3 = 20
     self.l4 = 15
-    self.l5 = 35
+    self.l5 = 47
     self.l6 = 10
     self.l7 = 10
     self.l8 = 5

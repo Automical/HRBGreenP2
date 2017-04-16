@@ -45,6 +45,52 @@ class Arm( object ):
     self.l8 = 5
     
     
+  def getTool(self, theta1,theta2,theta5):
+    rc = self.l2*cos(theta2) + self.l6
+    zc = self.l2*sin(theta2)
+    
+    ra = self.l1*cos(theta1) - self.l7
+    za = self.l1*sin(theta1)
+    
+    xc = rc
+    yc = zc
+    
+    xa = ra
+    ya = za
+    
+    d = dist2(xc,yc,xa,ya)
+    
+    a = (self.l3**2-self.l4**2+d**2)/(2*d)
+    
+    h = sqrt(self.l3**2-a**2)
+    
+    x2 = xa +a*(xc-xa)/d
+    y2 = ya +a*(yc-ya)/d
+    
+    x31 = x2 + h * (yc-ya)/d
+    y31 = y2 - h * (xc-xa)/d
+    
+    x32 = x2 - h * (yc-ya)/d
+    y32 = y2 + h * (xc-xa)/d
+    
+    if (y31 > y32):
+      yb = y31
+      xb = x31
+    else:
+      yb = y32
+      xb = x32
+      
+    theta4 = atan2(yc-yb,xc-xb)
+    
+    r = xb + self.l5*cos(theta4)
+    z = yb + self.l5*sin(theta4)
+    
+    x = r*cos(theta5)
+    y = r*sin(theta5)
+    
+    tool = asarray([[x],[y],[z]])
+    return tool
+    
   def getTool(self,ang):
     rc = self.l2*cos(ang[1]) + self.l6
     zc = self.l2*sin(ang[1])
@@ -356,7 +402,12 @@ def getToolLoc(arm,ser):
     ang[i] = radians(robAngToWorldAng(ang[i]))
     
   
-  return arm.getTool(ang)
+  ang = [ang[0], ang[1], 0, 0, ang[2]]
+  
+  
+  
+  
+  return arm.getTool(ang[0],ang[1],ang[4])
        
    
    
