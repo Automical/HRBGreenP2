@@ -45,22 +45,29 @@ class Arm( object ):
     self.l8 = 5
     
     
-  def getTool(self, theta1,theta2,theta5):
+  def getToolAng(self, theta1,theta2,theta5):
+    print("theta1,2,5",theta1,theta2,theta5)
+
     rc = self.l2*cos(theta2) + self.l6
     zc = self.l2*sin(theta2)
+    print("Rc,Zc",rc,zc)
     
     ra = self.l1*cos(theta1) - self.l7
     za = self.l1*sin(theta1)
+    print("Ra,Za",ra,za)
     
     xc = rc
     yc = zc
     
     xa = ra
     ya = za
+    print("Xa,Ya",xa,ya)
     
     d = dist2(xc,yc,xa,ya)
-    
+    print("D:",d)
+
     a = (self.l3**2-self.l4**2+d**2)/(2*d)
+    print("A:",a)
     
     h = sqrt(self.l3**2-a**2)
     
@@ -368,7 +375,7 @@ class GoToPoint(Plan):
       self.app.ser[1].set_pos(worldAngtoRobAng(degrees(self.ang[1])))
       self.app.ser[2].set_pos(worldAngtoRobAng(degrees(self.ang[4])))
       
-      #for i in range(1,num_motors_arm):
+      #for i in range(0,num_motors_arm):
       #  self.app.ser[i].set_pos(self.ang[i])
         
       yield self.forDuration(.1)
@@ -389,16 +396,17 @@ def calcRigidTransform(p1,p2,p3,p4,r1,r2,r3,r4):
   
   Ro = np.zeros((4,4))
   Ro[0:3,0:3] = R
-  Ro[0:3,3:4] = np.matrix([[p1[0]],[p1[1]],[p1[2]],[1]])
+  Ro[0:4,3:4] = np.matrix([[p1[0]],[p1[1]],[p1[2]],[1]])
+  print(Ro)
   return Ro
   
 def getToolLoc(arm,ser):
   ang = np.zeros(num_motors_arm)
-  for i in range(1,num_motors_arm):
+  for i in range(0,num_motors_arm):
     ang[i] = ser[i].get_pos()
    
 
-  for i in range(1,len(ang)):
+  for i in range(0,len(ang)):
     ang[i] = radians(robAngToWorldAng(ang[i]))
     
   
@@ -407,7 +415,7 @@ def getToolLoc(arm,ser):
   
   
   
-  return arm.getTool(ang[0],ang[1],ang[4])
+  return arm.getToolAng(ang[0],ang[1],ang[4])
        
    
    
@@ -491,7 +499,7 @@ class GreenApp( JoyApp ):
       if evt.key == K_UP:
         print("up")
       elif evt.key == K_o:
-        for i in range(1,num_motors):
+        for i in range(0,num_motors):
           self.ser[i].go_slack()
       elif evt.key == K_a:
         progress("Read p1")
@@ -506,7 +514,7 @@ class GreenApp( JoyApp ):
         progress("Read p4")
         self.p4 = getToolLoc(self.arm,self.ser)
       elif evt.key == K_z:
-        self.T = calcRigidTransform(self.p1,self.p2,self.p3,sel.fp4,self.p1_d,self.p2_d,self.p3_d,self.p4_d)
+        self.T = calcRigidTransform(self.p1,self.p2,self.p3,self.p4,self.p1_d,self.p2_d,self.p3_d,self.p4_d)
         self.paper.update_paper(self.T)
       elif evt.key == K_f:
         progress("read file")
@@ -526,10 +534,16 @@ class GreenApp( JoyApp ):
         else:
           print("Point plan already running")
       elif evt.key == K_l:
-        if self.point_plan.isRunning() == False:
-          print("Going to some rando point!")
-          self.point_plan.setEnd(asarray([[35],[0],[40]]))
-          self.point_plan.start()
+        pass
+        print("Trying to draw points")
+        self.point_plan.stop()
+        for s in self.points_on:
+          for p in s:
+            print("Going to",p)
+            self.point_plan.setEnd(self.paper.convertPoint(p[0],p[1]))
+            self.point_plan.start()
+            while(self.point_plan.isRunning() == True):
+              a = 1 + 1
       elif evt.key == K_ESCAPE:
             self.stop()
         
