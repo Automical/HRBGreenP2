@@ -1,3 +1,8 @@
+#Testing definition of mapping four corners of paper into a rigid body transform
+#Worked for simple perfect case, need to implement with code given by Professor Revzen 
+#  transform generation by least squares
+
+
 #coordinate transform test
 import numpy as np
 

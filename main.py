@@ -1,3 +1,8 @@
+#Main code file for servo control through inverse kinematics
+#Inverse works (ignoring limitations caused by mechanical issues)
+#Mapping coordinates onto the paper does not
+
+
 #-----------------------------------------------------------------------------------------------
 #Imports
 from joy import *

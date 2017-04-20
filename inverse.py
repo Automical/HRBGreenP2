@@ -1,3 +1,7 @@
+#Inverse kinematics demo that models our actual used robot
+#Give program end-point with nested list ie [[x],[y],[z]] to test
+#  inverse kinematics
+
 import numpy as np
 #4x4 Rigid body transformation for paper representation
 PAPER = np.matrix([[ 1/1.414, 0, -1/1.414, 100.],[0., 1,.0, -100.],[1/1.414,0.,1/1.414,0.],[0.,0.,0.,1.]])

@@ -1,3 +1,7 @@
+#Inverse kinematics demo used for demo 1
+#We ended up not using this design, so completely redone
+#Based on RigidTest.py provided by Professor Revzen
+
 import numpy as np
 from scipy.linalg import expm as expM
 import matplotlib.pyplot as plt
