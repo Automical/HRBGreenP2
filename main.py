@@ -4,11 +4,12 @@ from joy import *
 import numpy as np
 from numpy import asarray
 from scipy.linalg import expm as expM
-#import matplotlib.pyplot as plt
-#from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 from time import sleep
 import ast
 from math import *
+from util import rigidFix
 #-----------------------------------------------------------------------------------------------
 
 
@@ -18,6 +19,7 @@ num_motors = 3
 num_motors_arm = 3
 dist_thresh = 1
 dt_max = .25
+step = .25
 filename = 'h.txt'
 #-----------------------------------------------------------------------------------------------
 
@@ -177,7 +179,7 @@ class Arm( object ):
     
     
     return ang
-  """
+  
   def plot3D(self,ang):
     global ax
     rc = self.l2*cos(ang[1]) + self.l6
@@ -222,7 +224,7 @@ class Arm( object ):
     y = [yc,ye]
     z = [zc,ze]
     ax.plot(x,y,z,label='l5')
-  """
+  
 #-----------------------------------------------------------------------------------------------
 #Representation of paper in 3D space
 #Conversions from 2D paper space to 3D arm space
@@ -265,6 +267,40 @@ class Paper(object):
   def convertPoint(self,x,y):
     return self.p1 + self.basis1*x+self.basis2*y
   
+  def convertPoint2(self,x,y,z):
+    v1 = self.p3 - self.p1
+    v2 = self.p2 - self.p1
+    
+    cp = np.cross(v1.T, v2.T)
+    #print(cp)
+    #a, b, c = cp
+    a = cp[0][0]
+    b = cp[0][1]
+    c = cp[0][2]
+    d = np.dot(cp, self.p3)
+    #Z = (d - a * X - b * Y) / c
+    #d = cz+ax+by
+    vector_norm = a*a + b*b + c*c
+    
+    normal_vector = np.array([a, b, c]) / np.sqrt(vector_norm)
+    point_in_plane = np.array([a, b, c]) / vector_norm
+
+    points = np.column_stack((x, y, z))
+    points_from_point_in_plane = points - point_in_plane
+    proj_onto_normal_vector = np.dot(points_from_point_in_plane,
+                                     normal_vector)
+    proj_onto_plane = (points_from_point_in_plane -
+                       proj_onto_normal_vector[:, None]*normal_vector)
+
+    return point_in_plane + proj_onto_plane
+    #x=x-self.p1[0]
+    #y=y-self.p1[1]
+    #z=z-self.p1[2]
+    v = asarray([[x],[y],[z]])
+    #x_out = self.basis1*v
+    #y_out = self.basis2*v
+    #return [x,y]
+
 #-----------------------------------------------------------------------------------------------
     
     
@@ -309,26 +345,26 @@ class Controller(object):
   def generateToolDelta(self,arm,ang,end):
     tool = arm.getTool(ang)
     diff = end-tool
-    if (abs(diff[0])>.1):
+    if (abs(diff[0])>.2):
       if (diff[0])>0:
-        tx = .1
+        tx = .2
       else:
-        tx=-.1
+        tx=-.2
     else:
       tx = 0
-    if (abs(diff[1])>.1):
+    if (abs(diff[1])>.2):
       if (diff[1])>0:
-        ty = .1
+        ty = .2
       else:
-        ty=-.1
+        ty=-.2
     else:
       ty = 0
       
-    if (abs(diff[2])>.1):
+    if (abs(diff[2])>.2):
       if (diff[2])>0:
-        tz = .1
+        tz = .2
       else:
-        tz=-.1
+        tz=-.2
     else:
       tz = 0
   
@@ -373,12 +409,12 @@ class GoToPoint(Plan):
       print("Setting0:",self.ang[0]," Setting1:",self.ang[1]," Setting4:",self.ang[4])
       self.app.ser[0].set_pos(worldAngtoRobAng(degrees(self.ang[0])))
       self.app.ser[1].set_pos(worldAngtoRobAng(degrees(self.ang[1])))
-      self.app.ser[2].set_pos(worldAngtoRobAng(degrees(self.ang[4])))
+      self.app.ser[2].set_pos(-worldAngtoRobAng(degrees(self.ang[4])))
       
       #for i in range(0,num_motors_arm):
       #  self.app.ser[i].set_pos(self.ang[i])
         
-      yield self.forDuration(.1)
+      yield self.forDuration(.001)
 
 #-----------------------------------------------------------------------------------------------
 class DrawStrokes(Plan):
@@ -409,6 +445,7 @@ class DrawStrokes(Plan):
 #p1 is origin of measured paper, others are around paper clockwise
 #r1-r4 are original, corresponding paper points
 #returns 4x4 rigid body transform
+'''
 def calcRigidTransform(p1,p2,p3,p4,r1,r2,r3,r4):
   B = np.matmul(p1,r1.T)+np.matmul(p2,r2.T)+np.matmul(p3,r3.T)+np.matmul(p4,r4.T)
   U, s, V = np.linalg.svd(B, full_matrices=True)
@@ -424,7 +461,13 @@ def calcRigidTransform(p1,p2,p3,p4,r1,r2,r3,r4):
   print(Ro)
   
   return Ro
-  
+'''
+
+def calcRigidTransform(p1,p2,p3,p4,r1,r2,r3,r4):
+  P = [p1,p2,p3,p4]
+  R = [r1,r2,r3,r4]
+
+
 def getToolLoc(arm,ser):
   ang = np.zeros(num_motors_arm)
   for i in range(0,num_motors_arm):
@@ -454,25 +497,83 @@ def worldAngtoRobAng(ang):
   
   return int((ang - 90)*-100)
 
-"""
+
+#plots workspace
+def plot_cuboid(center, size):
+  global ax
+  """
+     Create a data array for cuboid plotting.
+
+
+     ============= ================================================
+     Argument      Description
+     ============= ================================================
+     center        center of the cuboid, triple
+     size          size of the cuboid, triple, (x_length,y_width,z_height)
+     :type size: tuple, numpy.array, list
+     :param size: size of the cuboid, triple, (x_length,y_width,z_height)
+     :type center: tuple, numpy.array, list
+     :param center: center of the cuboid, triple, (x,y,z)
+ """
+  # suppose axis direction: x: to left; y: to inside; z: to upper
+  # get the (left, outside, bottom) point
+  ox, oy, oz = center
+  l, w, h = size
+
+  x = np.linspace(ox-l/2,ox+l/2,num=2)
+  y = np.linspace(oy-w/2,oy+w/2,num=2)
+  z = np.linspace(oz-h/2,oz+h/2,num=2)
+  x1, z1 = np.meshgrid(x, z)
+  y11 = np.ones_like(x1)*(oy-w/2)
+  y12 = np.ones_like(x1)*(oy+w/2)
+  x2, y2 = np.meshgrid(x, y)
+  z21 = np.ones_like(x2)*(oz-h/2)
+  z22 = np.ones_like(x2)*(oz+h/2)
+  y3, z3 = np.meshgrid(y, z)
+  x31 = np.ones_like(y3)*(ox-l/2)
+  x32 = np.ones_like(y3)*(ox+l/2)
+
+  # outside surface
+  ax.plot_wireframe(x1, y11, z1, color='y', rstride=1, cstride=1, alpha=0.6)
+  # inside surface
+  ax.plot_wireframe(x1, y12, z1, color='y', rstride=1, cstride=1, alpha=0.6)
+  # bottom surface
+  ax.plot_wireframe(x2, y2, z21, color='y', rstride=1, cstride=1, alpha=0.6)
+  # upper surface
+  ax.plot_wireframe(x2, y2, z22, color='y', rstride=1, cstride=1, alpha=0.6)
+  # left surface
+  ax.plot_wireframe(x31, y3, z3, color='y', rstride=1, cstride=1, alpha=0.6)
+  # right surface
+  ax.plot_wireframe(x32, y3, z3, color='y', rstride=1, cstride=1, alpha=0.6)
+
+
+
 class DrawPlan( Plan ):
   def __init__(self,app,*arg,**kw):
+    global ax
     Plan.__init__(self,app,*arg,**kw)
     fig = gcf()
-    self.ax = fig.gca(projection='3d')
-
+    ax = fig.gca(projection='3d')
+    plt.show()
   def behavior(self):
+    global ax
     # Clear the screen
     ax.clear()
 
     # Draw workspace
     plot_cuboid((19.24,0,15.24),(30.48,30.48,30.48))
-
+    
+    self.app.arm.plot3D(self.app.ang)
+    
+    x = asarray([float(self.app.paper.p1[0]),float(self.app.paper.p2[0]),float(self.app.paper.p3[0]),float(self.app.paper.p4[0]),float(self.app.paper.p1[0])])
+    y = asarray([float(self.app.paper.p1[1]),float(self.app.paper.p2[1]),float(self.app.paper.p3[1]),float(self.app.paper.p4[1]),float(self.app.paper.p1[1])])
+    z = asarray([float(self.app.paper.p1[2]),float(self.app.paper.p2[2]),float(self.app.paper.p3[2]),float(self.app.paper.p4[2]),float(self.app.paper.p1[2])])
+    
     plt.draw()
     plt.pause(.0001)
     show()
     yield(self.forDuration(.1))
-    """
+    
 
 #-----------------------------------------------------------------------------------------------
 #App
@@ -516,9 +617,11 @@ class GreenApp( JoyApp ):
     
     self.point_plan = GoToPoint(self)
     self.stroke_plan = DrawStrokes(self)
+    self.draw_plan = DrawPlan(self)
     
   def onStart( self ):
     print("start")
+    self.draw_plan.start()
     
   def onEvent( self, evt ):
     if evt.type == KEYDOWN:
@@ -569,8 +672,15 @@ class GreenApp( JoyApp ):
         self.stop()
       elif evt.key==K_b:
         print(getToolLoc(self.arm,self.ser))
-
-
+      elif evt.key==K_v:
+        #z = getToolLoc(self.arm,self.ser)
+        #print(self.paper.convertPoint2(z[0],z[1],z[2]))
+        for s in self.points_on:
+              for p in s:
+                print("printing point")
+                print("Going to ",p)
+                print("Normal Coords ", self.paper.convertPoint(p[0],p[1]))
+                
 
 
 
